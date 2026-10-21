@@ -1,0 +1,29 @@
+# Copie para a raiz de um projeto de dados como .gitignore
+# Dados e saídas: nunca vão para o GitHub
+dados/
+data/
+saidas/
+output/
+*.xlsx
+*.xlsm
+*.xls
+*.csv
+*.parquet
+*.pbix
+*.pkl
+*.h5
+*.keras
+# Segredos
+.env
+*.env
+secrets.toml
+.streamlit/secrets.toml
+credentials*.json
+# Ambiente
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db

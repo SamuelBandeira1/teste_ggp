@@ -103,8 +103,8 @@ fi
 
 passo "Bibliotecas Python usadas pelos scripts"
 if command -v python3 >/dev/null 2>&1; then
-  python3 -m pip install --user --quiet pandas numpy openpyxl xlsxwriter python-pptx python-docx \
-    || FALHAS+=("pip install (rode manualmente: python3 -m pip install pandas numpy openpyxl xlsxwriter python-pptx python-docx)")
+  python3 -m pip install --user --quiet -r "$RAIZ/requirements.txt" \
+    || FALHAS+=("pip install (rode manualmente: python3 -m pip install -r requirements.txt)")
 else
   FALHAS+=("python3 não encontrado: instale Python 3.10+ para os scripts de auditoria, radar e desvios")
 fi

@@ -102,8 +102,8 @@ if ((Test-Path $Global) -and (Select-String -Path $Global -SimpleMatch $Import -
 Passo "Bibliotecas Python usadas pelos scripts"
 $py = Get-Command python -ErrorAction SilentlyContinue
 if ($py) {
-  & python -m pip install --user --quiet pandas numpy openpyxl xlsxwriter python-pptx python-docx
-  if ($LASTEXITCODE -ne 0) { $Falhas.Add("pip install pandas numpy openpyxl xlsxwriter python-pptx python-docx") }
+  & python -m pip install --user --quiet -r (Join-Path $Raiz "requirements.txt")
+  if ($LASTEXITCODE -ne 0) { $Falhas.Add("python -m pip install -r requirements.txt") }
 } else {
   $Falhas.Add("Python não encontrado: instale Python 3.10+ para os scripts de auditoria, radar e desvios")
 }
