@@ -1,0 +1,16 @@
+{
+  "name": "sop-comercial",
+  "displayName": "S&OP e Inteligência Comercial",
+  "version": "1.0.0",
+  "description": "Planejamento S&OP por fases (Aço Cearense), radar de exceções de vendas contra o histórico e análise de desvios realizado x previsão, com scripts Python.",
+  "author": {
+    "name": "Samuel Bandeira"
+  },
+  "license": "MIT",
+  "keywords": [
+    "sop",
+    "vendas",
+    "forecast",
+    "demanda"
+  ]
+}

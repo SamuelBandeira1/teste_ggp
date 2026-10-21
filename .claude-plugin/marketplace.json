@@ -1,0 +1,29 @@
+{
+  "name": "samuel-stack",
+  "description": "Método de trabalho, orquestração e skills do Samuel para Claude Code",
+  "owner": {
+    "name": "Samuel Bandeira"
+  },
+  "plugins": [
+    {
+      "name": "metodo-samuel",
+      "source": "./plugins/metodo-samuel",
+      "description": "Fluxo antes de executar, orquestrador com subagentes por modelo, conselho crítico independente, checagem de entrega com auditoria de números, escrita direta sem cara de IA e fechamento de sessão."
+    },
+    {
+      "name": "sop-comercial",
+      "source": "./plugins/sop-comercial",
+      "description": "Planejamento S&OP por fases (Aço Cearense), radar de exceções de vendas contra o histórico e análise de desvios realizado x previsão, com scripts Python."
+    },
+    {
+      "name": "office-bi",
+      "source": "./plugins/office-bi",
+      "description": "Padrão de entrega para Excel, PowerPoint e Word sobre as skills de documento da Anthropic, e fluxo seguro de Power BI em PBIP/TMDL com resumo do modelo e teste de DAX."
+    },
+    {
+      "name": "pessoal",
+      "source": "./plugins/pessoal",
+      "description": "Equipe NFC + 3D e registro do Shaping. Vem desligado na conta de trabalho."
+    }
+  ]
+}

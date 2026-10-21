@@ -1,0 +1,14 @@
+{
+  "name": "pessoal",
+  "displayName": "Projetos pessoais",
+  "version": "1.0.0",
+  "description": "Equipe NFC + 3D e registro do Shaping. Vem desligado na conta de trabalho.",
+  "author": {
+    "name": "Samuel Bandeira"
+  },
+  "license": "MIT",
+  "keywords": [
+    "pessoal"
+  ],
+  "defaultEnabled": false
+}

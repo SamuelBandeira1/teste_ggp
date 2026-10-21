@@ -1,0 +1,16 @@
+{
+  "name": "metodo-samuel",
+  "displayName": "Método Samuel",
+  "version": "1.0.0",
+  "description": "Fluxo antes de executar, orquestrador com subagentes por modelo, conselho crítico independente, checagem de entrega com auditoria de números, escrita direta sem cara de IA e fechamento de sessão.",
+  "author": {
+    "name": "Samuel Bandeira"
+  },
+  "license": "MIT",
+  "keywords": [
+    "workflow",
+    "orquestracao",
+    "qualidade",
+    "pt-br"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "office-bi",
+  "displayName": "Office e Power BI",
+  "version": "1.0.0",
+  "description": "Padrão de entrega para Excel, PowerPoint e Word sobre as skills de documento da Anthropic, e fluxo seguro de Power BI em PBIP/TMDL com resumo do modelo e teste de DAX.",
+  "author": {
+    "name": "Samuel Bandeira"
+  },
+  "license": "MIT",
+  "keywords": [
+    "excel",
+    "powerpoint",
+    "word",
+    "power-bi",
+    "dax"
+  ]
+}
