@@ -4,6 +4,8 @@ Pacote para levar o método de trabalho da conta pessoal do Claude para a conta 
 
 Testado em 21/10/2026 com Claude Code 2.1.306 no Linux: `claude plugin validate` passou no marketplace e nos 4 plugins, e o `instalar.sh` rodou do zero numa pasta de usuário vazia (8 plugins ativos, CLAUDE.md importado). O `instalar.ps1` (Windows) segue os mesmos passos, mas não foi executado aqui por falta de PowerShell no ambiente de teste.
 
+**Para instalar na conta de trabalho:** cole o [PARA-O-CLAUDE-DO-TRABALHO.md](PARA-O-CLAUDE-DO-TRABALHO.md) inteiro no Claude Code do trabalho. Ele checa a máquina, pergunta o necessário, instala, verifica e devolve um relatório.
+
 ## O que vem no pacote
 
 | Plugin | Conteúdo | Custo fixo por sessão |
