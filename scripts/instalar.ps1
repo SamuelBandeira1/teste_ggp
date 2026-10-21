@@ -1,4 +1,4 @@
-# Instala o samuel-stack no Claude Code desta máquina (Windows / PowerShell).
+﻿# Instala o samuel-stack no Claude Code desta máquina (Windows / PowerShell).
 #
 # Uso (na pasta do repositório clonado):
 #   powershell -ExecutionPolicy Bypass -File .\scripts\instalar.ps1
@@ -24,15 +24,25 @@ $Origem = if ($Repo) { $Repo } else { $Raiz }
 $Falhas = New-Object System.Collections.Generic.List[string]
 
 function Passo($t) { Write-Host ""; Write-Host "==> $t" -ForegroundColor Cyan }
+
+# Claude Code: no PATH ou só dentro da extensão do VS Code
+$Claude = (Get-Command claude -ErrorAction SilentlyContinue).Source
+if (-not $Claude) {
+  $Claude = Get-ChildItem -Path (Join-Path $HOME ".vscode\extensions") -Filter "claude.exe" -Recurse -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -like "*anthropic.claude-code*" } | Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1 -ExpandProperty FullName
+}
+
 function Tenta([string[]]$cmdArgs) {
-  & claude @cmdArgs
+  & $Claude @cmdArgs
   if ($LASTEXITCODE -ne 0) { $Falhas.Add("claude " + ($cmdArgs -join " ")) }
 }
 
-if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
-  Write-Host "Claude Code não encontrado. Instale antes: https://code.claude.com/docs/en/setup" -ForegroundColor Red
+if (-not $Claude) {
+  Write-Host "Claude Code não encontrado (nem no PATH nem na extensão do VS Code). Instale antes: https://code.claude.com/docs/en/setup" -ForegroundColor Red
   exit 1
 }
+Write-Host "Claude Code: $Claude"
 
 Passo "Marketplace samuel-stack ($Origem)"
 Tenta @("plugin", "marketplace", "add", $Origem)
@@ -100,9 +110,15 @@ if ((Test-Path $Global) -and (Select-String -Path $Global -SimpleMatch $Import -
 }
 
 Passo "Bibliotecas Python usadas pelos scripts"
-$py = Get-Command python -ErrorAction SilentlyContinue
+# Prefere o lançador "py"; ignora o atalho "python" da Microsoft Store (pasta WindowsApps)
+$py = $null; $pyArgs = @()
+if (Get-Command py -ErrorAction SilentlyContinue) { $py = "py"; $pyArgs = @("-3") }
+else {
+  $cand = Get-Command python -All -ErrorAction SilentlyContinue | Where-Object { $_.Source -notlike "*WindowsApps*" } | Select-Object -First 1
+  if ($cand) { $py = $cand.Source }
+}
 if ($py) {
-  & python -m pip install --user --quiet -r (Join-Path $Raiz "requirements.txt")
+  & $py @pyArgs -m pip install --user --quiet -r (Join-Path $Raiz "requirements.txt")
   if ($LASTEXITCODE -ne 0) { $Falhas.Add("python -m pip install -r requirements.txt") }
 } else {
   $Falhas.Add("Python não encontrado: instale Python 3.10+ para os scripts de auditoria, radar e desvios")
@@ -112,7 +128,7 @@ if (-not (Get-Command soffice -ErrorAction SilentlyContinue)) {
 }
 
 Passo "Resultado"
-& claude plugin list
+& $Claude plugin list
 if ($Falhas.Count -gt 0) {
   Write-Host ""; Write-Host "Passos que falharam (rode de novo ou faça manualmente):" -ForegroundColor Yellow
   $Falhas | ForEach-Object { Write-Host " - $_" }
