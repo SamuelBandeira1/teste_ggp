@@ -14,7 +14,12 @@ Medido com `claude plugin details` (estimativa do próprio Claude Code). "Fixo" 
 | operations | ~870 | — |
 | finance | ~750 | — |
 | productivity | ~350 | — |
-| **Total** | **~7.400** | |
+| superpowers | ~850 (+ hook de início de sessão) | conforme a skill |
+| andrej-karpathy-skills | ~105 | — |
+| REA (skill + MCP adiado) | ~70 | skill ~6 mil |
+| **Total padrão** | **~8.500** | |
+| ui-ux-pro-max (opcional) | ~1.070 | — |
+| last30days (opcional) | ~105 | — |
 
 Plugin que não for usado em 2 semanas: desligar com `claude plugin disable <nome>@<marketplace>`.
 

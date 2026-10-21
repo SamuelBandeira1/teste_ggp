@@ -47,7 +47,7 @@ Levantamento feito em 21/10/2026 na conta pessoal (claude.ai + Claude Code), nos
 | `comaf-portas`, `landing-liana`, `landing_page_garage_club`, `resolve-prod`, `samuelpessoal` | público/privado | Sites de clientes e pessoal; não incluídos |
 | `teste_ggp` | público | Este pacote |
 
-Nenhum repositório contém os "repositórios de engenharia reversa" citados. Se eles estão em outra conta do GitHub, numa organização ou só no computador, precisam ser trazidos para cá para entrar no pacote.
+Os "repositórios de engenharia reversa" e os "obrigatórios" vistos em vídeos não estavam na conta: eram repositórios de terceiros. Foram identificados e checados em [REPOSITORIOS-RECOMENDADOS.md](REPOSITORIOS-RECOMENDADOS.md); o de engenharia reversa é o REA (morluto/rea), que o instalador já configura.
 
 ## O que não dá para puxar daqui (fazer à mão)
 

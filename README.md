@@ -13,7 +13,17 @@ Testado em 21/10/2026 com Claude Code 2.1.306 no Linux: `claude plugin validate`
 | `office-bi` | `entregas-office` (padrão de Excel, PowerPoint, Word), `power-bi-pbip` (PBIP/TMDL/DAX com script que resume o modelo). Subagentes `construtor-office` e `especialista-power-bi` | ~0,6 mil |
 | `pessoal` | `equipe-nfc-3d`, `registro-shaping`. Vem **desligado** | — |
 
-O instalador também adiciona, da Anthropic: `document-skills` (xlsx, pptx, docx, pdf) e os plugins `data`, `finance`, `operations` e `productivity` (os mesmos que estão na conta pessoal). Com tudo ligado, o custo fixo fica em torno de 7,4 mil tokens por sessão; o conteúdo completo de cada skill só entra quando ela é usada.
+O instalador também adiciona os repositórios que passaram na checagem de [docs/REPOSITORIOS-RECOMENDADOS.md](docs/REPOSITORIOS-RECOMENDADOS.md):
+
+| Repositório | Para quê |
+|---|---|
+| `anthropics/skills` (document-skills) | Excel, PowerPoint, Word, PDF |
+| `anthropics/knowledge-work-plugins` (`data`, `finance`, `operations`, `productivity`) | Os mesmos plugins de trabalho da conta pessoal |
+| `obra/superpowers` | Método para tarefas de código: plano, TDD, depuração, verificação |
+| `forrestchang/andrej-karpathy-skills` | Quatro regras de código enxuto e verificado |
+| `morluto/rea` (REA, o "do Morlock") | Engenharia reversa de site, app e executável. Precisa de Node 22.19+ |
+
+Opcionais: `--com-design` (UI UX Pro Max) e `--com-pesquisa` (last30days). Com o padrão ligado, o custo fixo fica em torno de 8,5 mil tokens por sessão; o conteúdo completo de cada skill só entra quando ela é usada.
 
 ## Instalar no Claude Code (conta de trabalho)
 
@@ -26,7 +36,7 @@ O instalador também adiciona, da Anthropic: `document-skills` (xlsx, pptx, docx
 3. Rodar o instalador:
    - Windows: `powershell -ExecutionPolicy Bypass -File .\scripts\instalar.ps1`
    - Linux, macOS, WSL: `./scripts/instalar.sh`
-   - Opções: `--com-pessoal` / `-ComPessoal` liga o plugin pessoal; `--sem-extras` / `-SemExtras` pula os plugins da Anthropic; `--repo dono/repo` / `-Repo dono/repo` instala direto do GitHub em vez da pasta local.
+   - Opções: `--com-pessoal` / `-ComPessoal` liga o plugin pessoal; `--sem-extras` / `-SemExtras` pula os plugins de terceiros; `--sem-rea` / `-SemRea` pula o REA; `--com-design` / `-ComDesign` e `--com-pesquisa` / `-ComPesquisa` somam os opcionais; `--repo dono/repo` / `-Repo dono/repo` instala direto do GitHub em vez da pasta local.
 4. Abrir o Claude Code e conferir com `/plugin` e `/context`.
 
 O instalador:
@@ -79,11 +89,12 @@ docs/                             inventário, pesquisa de mercado, tokens, clau
 ## Cuidados
 
 - **Este repositório (`teste_ggp`) é público.** O conteúdo não tem senha, token nem número de ciclo, mas descreve o método de S&OP da Aço Cearense, nomes de colunas das bases e os projetos pessoais. Recomendo copiar para um repositório **privado** no GitHub do trabalho e tornar este privado ou apagar o branch depois.
-- Antes de instalar plugin de terceiros na máquina do trabalho, confirmar a política de TI. Os desta lista são da Anthropic; os citados em [docs/PESQUISA-MERCADO.md](docs/PESQUISA-MERCADO.md) não são instalados automaticamente.
+- Antes de rodar na máquina do trabalho, confirmar a política de TI: o instalador baixa plugins do GitHub (Anthropic, Superpowers, Karpathy) e o REA pelo npm. O REA é ferramenta de engenharia reversa; usar só em sistema próprio ou com autorização.
 - O MCP de Power BI da Microsoft está em preview: começar com `--readonly` e fazer backup do projeto (ver skill `power-bi-pbip`).
 
 ## Documentação
 
+- [docs/REPOSITORIOS-RECOMENDADOS.md](docs/REPOSITORIOS-RECOMENDADOS.md): os repositórios "obrigatórios" das redes sociais, checados um a um (instalar, opcional, não instalar)
 - [docs/INVENTARIO.md](docs/INVENTARIO.md): o que foi puxado da conta pessoal, o que mudou e o que ficou de fora
 - [docs/PESQUISA-MERCADO.md](docs/PESQUISA-MERCADO.md): comparação com BMAD, Superpowers, agency-agents, claude-flow e outros, e o que foi incorporado
 - [docs/ECONOMIA-DE-TOKENS.md](docs/ECONOMIA-DE-TOKENS.md): regras, configurações e ferramentas para medir e reduzir consumo

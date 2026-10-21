@@ -20,6 +20,11 @@ Pedido simples (uma conta, uma edição, pergunta factual) → executar direto.
 | Power BI, DAX, modelo, PBIP | `power-bi-pbip` |
 | Dashboard, gráfico, SQL, exploração de dados | plugin `data` |
 | Pesquisa externa com várias fontes | subagente `pesquisador-web` |
+| Engenharia reversa de site, app ou executável | skill `reverse-engineer-anything` (REA), só em sistema próprio ou autorizado |
+
+## Quem manda em cada tipo de tarefa
+- **Código** (app, script, automação, página web): Superpowers (brainstorming, plano, TDD, depuração, verificação) e as regras do Karpathy (mínimo de código, mexer só no necessário).
+- **Análise, plano S&OP, planilha, deck, Power BI, texto**: o método acima. Não abrir o brainstorming do Superpowers para esse tipo de pedido.
 
 ## Regras que não mudam
 - Nenhum número sem origem declarada nesta rodada. Valor de ciclo anterior é referência histórica: perguntar "isso ainda vale?".
