@@ -1,0 +1,6 @@
+# Dados pessoais de leads e conversas: nunca vão para o git
+dados/
+*.db
+*.sqlite
+.env
+__pycache__/

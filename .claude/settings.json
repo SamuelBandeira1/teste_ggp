@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "deny": [
+      "mcp__whatsapp__send_message",
+      "mcp__whatsapp__send_file",
+      "mcp__whatsapp__send_audio_message"
+    ]
+  }
+}
