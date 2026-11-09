@@ -42,8 +42,8 @@ Legenda: [AUTO] o Claude faz sozinho · [OK SAMUEL] para e espera você · [SAMU
 | # | Tarefa | Pronto quando |
 |---|---|---|
 | 0.1 | [AUTO] Conferir Docker, Python 3.11+, Go, Node e uv. Instalar o que faltar, dizendo antes o que vai instalar. | `docker --version`, `python3 --version`, `go version`, `uv --version` respondem |
-| 0.2 | [OK SAMUEL] Confirmar cidade e bairros-alvo em `prospeccao/buscas.txt` (premissa: Fortaleza/CE) | Arquivo com a cidade certa |
-| 0.3 | [OK SAMUEL] Preço e oferta (ver "Decisões suas" abaixo) | Preço unitário e kit escritos em `CLAUDE.md` |
+| 0.2 | Cidade confirmada: Fortaleza/CE. [AUTO] Ajustar bairros em `prospeccao/buscas.txt` se o Samuel pedir | Feito |
+| 0.3 | [AUTO] Calcular o custo real de cada modelo com os dados que o Samuel trouxer (fórmula em "Custo e preço") e propor preço de balcão, kit e volume. [OK SAMUEL] aprova | Custo e preço escritos em `CLAUDE.md`, conta feita por código |
 
 ### Fase 1: caçar leads no Google Maps (hoje, roda sozinho ~30–60 min)
 | # | Tarefa | Pronto quando |
@@ -76,8 +76,8 @@ Atenção: a ponte só tem o histórico que o WhatsApp manda ao conectar (as con
 ### Fase 4: visita e fechamento (quarta a sexta)
 | # | Tarefa | Pronto quando |
 |---|---|---|
-| 4.1 | [AUTO] Para os 3–5 mais quentes: briefing da placa para o Ricardo (logo do restaurante, medidas, cor disponível, posição da tag, o que a tag abre) | Ricardo consegue imprimir sem perguntar nada |
-| 4.2 | [Ricardo] Imprimir as amostras personalizadas | Placas com tag gravada e testada |
+| 4.1 | [AUTO] Para os 3–5 mais quentes: ficha de impressão de cada placa (logo do restaurante, medidas, cor em estoque, cavidade da tag, o que a tag abre) e, se der, o arquivo pronto para fatiar | Dá para mandar imprimir sem perguntar nada |
+| 4.2 | [SAMUEL] Imprimir as amostras na nossa impressora e gravar as tags | Placas com tag gravada e testada em Android e iPhone |
 | 4.3 | [SAMUEL] Visita 15h–17h: entregar a placa, pedir para o dono encostar o celular, falar o preço, perguntar quantas mesas | Pedido ou próximo passo com data |
 | 4.4 | [AUTO] Proposta de 1 página (kit, preço, prazo, Pix) a partir do preço aprovado na 0.3 | PDF ou mensagem pronta para você enviar |
 | 4.5 | [Vitu] Vídeo de 15 s do primeiro cliente usando a placa, com autorização dele | Post no Instagram |
@@ -107,16 +107,21 @@ Só se sobrar tempo depois da Fase 2. Instalar seguindo o README (`git clone htt
 - "Vou pensar": "Posso deixar uma de amostra uma semana? Se não aparecer avaliação nova, você me devolve."
 - "Funciona em iPhone?": sim, iPhone XS ou mais novo lê NFC sem app. Em Android, NFC precisa estar ligado; por isso a placa leva também QR.
 
+## Custo e preço (produção própria)
+Custo por placa = (gramas ÷ 1000 × preço do kg do filamento) + tag NFC + energia (potência da impressora em kW × horas de impressão × tarifa da Enel CE por kWh) + perda de impressões falhas (somar 10% no início) + embalagem.
+Preço = custo + margem, com o tempo de impressão também pesando: a impressora é o gargalo. Um kit de 10 placas de mesa que leva 15 horas de máquina ocupa a impressora por quase um dia inteiro.
+Antes de prometer prazo, o Claude calcula quantas horas de máquina o pedido toma.
+
 ## Decisões suas antes de enviar qualquer mensagem
-1. **Preço.** Custo do Ricardo por placa (modelo e tamanho) + tag NFC + gravação + entrega + margem. Sem o custo do Ricardo o Claude não inventa número. Sugestão de formato: placa de balcão, kit de mesas (ex.: 10) e preço por volume.
+1. **Preço.** A produção é nossa, então o custo sai da nossa impressora (fórmula em "Custo e preço" abaixo). O Claude calcula e propõe; você aprova. Formato sugerido: placa de balcão, kit de mesas (ex.: 10) e preço por volume.
 2. **Oferta de entrada para o primeiro cliente:** amostra grátis por 7 dias, ou primeiro kit com desconto em troca de vídeo e depoimento. Escolher uma.
 3. **Cores disponíveis agora:** listar os filamentos que tem, para o briefing das amostras.
-4. **Cidade e bairros** (premissa: Fortaleza/CE).
-5. **Número que envia:** o seu pessoal ou um segundo número com WhatsApp Business. Recomendo o segundo número se o volume passar de 30 por dia.
+4. **Cidade:** Fortaleza/CE (confirmado).
+5. **Número que envia:** por enquanto o seu número pessoal. O número do bot vem depois. Até lá, envio só manual pela `dados/fila.html` e no máximo 30 mensagens frias por dia, para não arriscar o seu número.
 
 ## O que preciso que vocês me tragam
 - **Samuel:** preço/oferta (item 1 e 2), cidade e bairros, nº que vai enviar, foto de uma placa pronta (para o Instagram e para a mensagem).
-- **Ricardo:** custo por placa por tamanho, cores de filamento em estoque, prazo para 5 amostras e para um kit de 10.
+- **Samuel (produção):** para cada modelo de placa, os gramas e o tempo de impressão que o fatiador mostra; preço pago no kg de cada filamento; preço unitário da tag NFC; cores em estoque; quantas placas a impressora faz por dia.
 - **Matheus:** se vai dividir os envios e as visitas; leads que já estão em conversa (para não abordar duas vezes).
 - **Vitu:** post fixado mostrando a placa funcionando, para o link do Instagram não chegar vazio.
 

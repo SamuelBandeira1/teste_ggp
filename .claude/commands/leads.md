@@ -5,7 +5,7 @@ description: Coleta restaurantes no Google Maps, pontua, escreve as mensagens e 
 Siga as regras do `CLAUDE.md`. Nada é enviado: o resultado é uma fila para o Samuel revisar e clicar.
 $ARGUMENTS pode trazer um arquivo de buscas diferente ou um limite de leads (padrão: 60).
 
-1. Confira que `prospeccao/buscas.txt` tem a cidade que o Samuel confirmou. Se ainda estiver com a premissa (Fortaleza) e ele não tiver confirmado, pergunte antes de rodar.
+1. Cidade confirmada: Fortaleza/CE. Use `prospeccao/buscas.txt` como está, a menos que o Samuel peça outros bairros.
 2. Rode o scraper (Docker), salvando em `dados/`:
    ```bash
    mkdir -p dados

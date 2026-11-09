@@ -1,6 +1,7 @@
 # Projeto: vendas das plaquinhas NFC (impressão 3D)
 
-Negócio do Samuel com Ricardo Dias (produção), Matheus (leads) e Vitu (Instagram).
+Negócio do Samuel com Matheus (leads) e Vitu (Instagram). A produção é nossa: temos impressora 3D própria, então custo e preço são calculados por nós.
+Cidade: Fortaleza/CE. Envio de mensagens: por enquanto pelo número pessoal do Samuel (o número do bot vem depois).
 Produto da semana: plaquinhas para restaurante com tag NFC que abrem avaliação no Google, cardápio e Instagram.
 Plano completo e ordem das tarefas: `BRIEFING.md`.
 
@@ -17,6 +18,8 @@ Plano completo e ordem das tarefas: `BRIEFING.md`.
 
 ## Preço e oferta
 <!-- Preencher na Fase 0.3. Enquanto estiver vazio, não escrever preço em nenhuma mensagem. -->
+<!-- Custo = gramas/1000 × preço do kg + tag NFC + energia + 10% de perda + embalagem. Ver BRIEFING.md, "Custo e preço". -->
+- Custo por modelo (gramas, horas de impressão, custo): A DEFINIR
 - Placa de balcão: A DEFINIR
 - Kit de mesa: A DEFINIR
 - Oferta de entrada: A DEFINIR
