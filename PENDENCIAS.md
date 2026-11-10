@@ -31,6 +31,13 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
 - **Falta:** ele vai passar as medidas: largura e altura do perfil da moldura e a espessura. Não modelar nem imprimir antes disso.
 - **Dica de impressão:** PETG ou PLA com 4 paredes, para não abrir quando apertar. Incluir um rebaixo no canto interno para a cola que escorrer não grudar na peça.
 
+## 1d. Tia Karina (tia da Amanda): peças geométricas — terminar hoje (10/11)
+- **Pedido:** as peças geométricas dela. O projeto já existe em um dos projetos do Claude ou do Claude Code; procurar lá antes de começar do zero.
+- **Cores:** só azul e amarelo. Não temos essas cores, então é preciso comprar 2 rolos de filamento só para esse pedido.
+- **Preço:** tem que cobrir os 2 rolos inteiros, e não só os gramas usados, mais o custo normal (tag, energia, perda) e a margem. Ela pode pagar.
+- **A fazer quando o Samuel pedir:** achar o projeto, terminar, calcular o preço com os 2 rolos embutidos e, se ele quiser, imprimir uma peça de teste.
+- Só anotado. Não executar nada sem o Samuel pedir.
+
 ## 2. Brindes para a confraternização de 19/11 (quinta-feira)
 - **Quantidade:** 30 brindes pequenos com a nossa marca.
 - **Prazo:** tudo impresso até 17/11, para sobrar margem para falha de impressão. Só temos uma impressora.
