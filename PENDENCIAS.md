@@ -24,6 +24,13 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
 - **Faltam:** as fotos de referência, as medidas, as cores, e se o besouro é decorativo ou se leva NFC.
 - **Próximo passo:** com as fotos, o Claude descreve as peças (formato, medidas, cores, tempo e custo estimados no fatiador) e monta um orçamento junto com a placa.
 
+## 1c. Humberto: cantoneiras para colar moldura (pedido separado)
+- **Pedido:** peças de canto em L que seguram a moldura no esquadro (90°) enquanto a cola seca, uma em cada canto. São 4 por moldura.
+- **Referência:** desenho dele mostrando uma moldura retangular com as 4 cantoneiras em L encaixadas por fora dos cantos. A foto está em `dados/referencias/humberto-cantoneira-moldura.jpg` (fora do git, porque aparece documento do trabalho ao fundo).
+- **Modelo:** ele diz que existe pronto no MakerWorld (Bambu Lab). Buscar por "picture frame corner clamp" ou "frame gluing corner" e escolher o que bate com o desenho.
+- **Falta:** ele vai passar as medidas: largura e altura do perfil da moldura e a espessura. Não modelar nem imprimir antes disso.
+- **Dica de impressão:** PETG ou PLA com 4 paredes, para não abrir quando apertar. Incluir um rebaixo no canto interno para a cola que escorrer não grudar na peça.
+
 ## 2. Brindes para a confraternização de 19/11 (quinta-feira)
 - **Quantidade:** 30 brindes pequenos com a nossa marca.
 - **Prazo:** tudo impresso até 17/11, para sobrar margem para falha de impressão. Só temos uma impressora.
