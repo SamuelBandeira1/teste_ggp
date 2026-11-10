@@ -28,6 +28,20 @@ dbg = ImageDraw.Draw(bg)
 dfg = ImageDraw.Draw(fg)
 col = [[False] * W for _ in range(H)]                       # colisões
 
+NF = 8          # quadros da animação
+FRAME_MS = 150  # duração de cada quadro (ms)
+F = 0           # quadro sendo desenhado agora
+
+
+def wave(phase=0.0):
+    """Oscila de -1 a 1 ao longo dos NF quadros (laço perfeito)."""
+    return math.sin((F + phase) * 2 * math.pi / NF)
+
+
+def frnd(*seed):
+    """Aleatório que muda a cada quadro."""
+    return random.Random(int(hashlib.md5(repr(seed).encode()).hexdigest()[:8], 16) + F * 7919)
+
 
 def font(size, weight="ExtraBold"):
     for p in (f"/usr/share/fonts/opentype/inter/Inter-{weight}.otf",
@@ -225,13 +239,19 @@ def floor_label(x, y, s, size=22, c=(246, 200, 40)):
 # -------------------------------------------------------------------- objetos
 def glow(d, cx, cy, r, steps=((120, 20, 10), (200, 60, 10), (240, 120, 20), (255, 190, 60), (255, 240, 170))):
     n = len(steps)
+    rnd = frnd(int(cx), int(cy))
     for i, c in enumerate(steps):
         rr = r * (1 - i / (n + 0.5))
-        d.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=c)
+        if i:
+            rr *= 1 + 0.08 * wave(i * 1.7 + (cx + cy) % 7) + rnd.uniform(-0.04, 0.04)
+        ox, oy = (rnd.randint(-1, 1), rnd.randint(-1, 1)) if i >= 2 else (0, 0)
+        if i >= n - 2:
+            c = shade(c, 1 + 0.06 * wave(i))
+        d.ellipse([cx - rr + ox, cy - rr + oy, cx + rr + ox, cy + rr + oy], fill=c)
 
 
 def sparks(d, x, y, w, h, n, seed):
-    rnd = random.Random(seed)
+    rnd = random.Random(seed * 1009 + F * 7919)
     for _ in range(n):
         px, py = P(x) + rnd.randrange(P(w)), P(y) + rnd.randrange(P(h))
         c = rnd.choice([(255, 230, 120), (255, 180, 60), (255, 250, 200)])
@@ -264,10 +284,19 @@ def furnace(x, y):
         dbg.ellipse([ex - 9, ey - 9, ex + 9, ey + 9], fill=(60, 60, 64), outline=(20, 20, 20), width=2)
         dbg.ellipse([ex - 5, ey - 5, ex + 5, ey + 5], fill=(150, 150, 156))
         dbg.ellipse([ex - 2, ey - 2, ex + 2, ey + 2], fill=(255, 255, 220))
+    rnd = frnd("arco")
+    tips = [(cx + math.cos(math.radians(a)) * 16, cy - math.sin(math.radians(a)) * 16) for a in (90, 210, 330)]
+    for i in range(3):
+        if rnd.random() < 0.6:                                                              # arco elétrico
+            (ax, ay), (bx, by) = tips[i], tips[(i + 1) % 3]
+            pts = [(ax + (bx - ax) * t / 5 + rnd.randint(-4, 4), ay + (by - ay) * t / 5 + rnd.randint(-4, 4)) for t in range(6)]
+            dbg.line(pts, fill=(200, 230, 255), width=2)
+            dbg.line(pts, fill=(255, 255, 255), width=1)
     # braço dos eletrodos (fica acima do jogador)
     prect(dfg, cx - 6, P(y) - 10, cx + 6, cy - 4, (200, 160, 30), outline=(40, 30, 10))
     prect(dfg, cx - 14, P(y) - 14, cx + 14, P(y) - 4, (60, 60, 66), outline=(20, 20, 20))
     sparks(dbg, x - 0.3, y - 0.3, 4.6, 4.6, 40, 11)
+    smoke(cx, P(y) - 14, 4)
     solid(x, y, 4, 4)
 
 
@@ -308,6 +337,10 @@ def caster(x, y):
             c = (255, int(240 - 170 * t), int(170 - 160 * t)) if t < 0.6 else (int(255 - 90 * (t - .6) / .4), int(70 - 30 * (t - .6) / .4), 10)
             xa = P(x + 1.6) + int(j * P(5.4) / n)
             prect(dbg, xa, P(sy + 0.1), xa + P(5.4) // n + 1, P(sy + 0.32), c)
+        span = P(5.4) - 4
+        for m in range(4):                                     # carepa andando com o tarugo
+            mx = P(x + 1.6) + 2 + (F * span // NF + m * span // 4 + i * 9) % span
+            prect(dbg, mx, P(sy + 0.13), mx + 2, P(sy + 0.29), (150, 40, 20))
     sparks(dbg, x + 1.4, y, 1.2, 3, 12, 7)
     solid(x, y, 7, 3)
 
@@ -318,7 +351,7 @@ def billets(x, y, w, h, hot=False):
     for r in range(rows):
         yy = P(y + 0.2) + r * 7
         for k in range(int(w)):
-            c = (200, 70, 30) if hot and (r + k) % 3 else (112, 110, 112)
+            c = shade((200, 70, 30), 1 + 0.1 * wave(r + k)) if hot and (r + k) % 3 else (112, 110, 112)
             prect(dbg, P(x + k) + 3, yy, P(x + k + 1) - 3, yy + 5, c, outline=shade(c, 0.7))
     solid(x, y, w, h)
 
@@ -332,12 +365,25 @@ def reheating_furnace(x, y):
         off = 0 if r % 2 else 12
         for k in range(P(x) + off, P(x + 3), 24):
             dbg.line([k, yy, k, yy + 15], fill=(110, 48, 36))
-    rect(dbg, x + 2.4, y + 1.2, 0.6, 1.6, (255, 160, 40))
-    rect(dbg, x + 2.6, y + 1.4, 0.4, 1.2, (255, 236, 150))
-    # chaminé (acima)
+    rect(dbg, x + 2.4, y + 1.2, 0.6, 1.6, shade((255, 160, 40), 1 + 0.12 * wave()))
+    rect(dbg, x + 2.6, y + 1.4 + 0.05 * wave(2), 0.4, 1.2, shade((255, 236, 150), 1 + 0.05 * wave(3)))
+    # chaminé (acima) + fumaça subindo
     rect(dfg, x + 0.3, y - 0.6, 0.8, 1.1, (90, 90, 96), outline=(30, 30, 34), width=2)
+    smoke(P(x + 0.7), P(y - 0.6))
     text(dbg, "FORNO", x + 1.2, y + 2, 13, (255, 230, 200), outline=(60, 20, 10), stroke=2)
     solid(x, y, 3, 4)
+
+
+def smoke(cx, top, n=3):
+    """Baforadas de fumaça que sobem e se desfazem (camada de cima)."""
+    for k in range(n):
+        ph = ((F + k * NF / n) % NF) / NF
+        yy = top - 4 - ph * 44
+        xx = cx + math.sin(ph * 5 + k) * 6
+        r = 5 + ph * 9
+        a = int(190 * (1 - ph))
+        g = int(150 + 60 * ph)
+        dfg.ellipse([xx - r, yy - r, xx + r, yy + r], fill=(g, g, g + 4, a))
 
 
 def roller_table(x, y, w, hot_from=0.0, hot_to=1.0):
@@ -347,6 +393,8 @@ def roller_table(x, y, w, hot_from=0.0, hot_to=1.0):
     a, b = P(x + w * hot_from), P(x + w * hot_to)
     prect(dbg, a, P(y + 0.4), b, P(y + 0.6), (255, 110, 30))
     prect(dbg, a, P(y + 0.45), b, P(y + 0.55), (255, 210, 110))
+    for k in range(a + (F * 8) % 64, b - 10, 64):              # brilho correndo na barra
+        prect(dbg, k, P(y + 0.42), k + 10, P(y + 0.58), (255, 250, 220))
     solid(x, y, w, 1)
 
 
@@ -356,6 +404,9 @@ def rolling_stand(x, y):
     rect(dbg, x + 0.35, y + 0.25, 1.3, 2.5, (70, 110, 160))
     for ry in (y + 1.2, y + 1.62):
         rect(dbg, x + 0.4, ry, 1.2, 0.22, (170, 170, 178), outline=(60, 60, 66))
+        for m in range(3):                                     # cilindro girando
+            mx = P(x + 0.4) + 2 + (F * 2 + m * 12) % (P(1.2) - 5)
+            prect(dbg, mx, P(ry) + 1, mx + 1, P(ry + 0.22) - 2, (110, 110, 118))
     rect(dbg, x + 0.4, y + 1.4, 1.2, 0.2, (255, 140, 40))
     rect(dbg, x + 0.7, y - 0.25, 0.6, 0.5, (240, 196, 30), outline=(60, 50, 10))       # motor
     solid(x, y, 2, 3)
@@ -366,7 +417,7 @@ def cooling_bed(x, y, w, h):
     for k in range(P(x) + 6, P(x + w) - 4, 10):
         dbg.line([k, P(y) + 4, k, P(y + h) - 4], fill=(40, 40, 44), width=3)
     for r, yy in enumerate(range(P(y) + 8, P(y + h) - 6, 9)):
-        c = (230, 90, 30) if r < 2 else ((170, 80, 50) if r < 4 else (120, 118, 122))
+        c = shade((230, 90, 30), 1 + 0.1 * wave(r * 2)) if r < 2 else ((170, 80, 50) if r < 4 else (120, 118, 122))
         dbg.line([P(x) + 4, yy, P(x + w) - 4, yy], fill=c, width=3)
     solid(x, y, w, h)
 
@@ -379,6 +430,11 @@ def spool(x, y, hot=False):
     for rr in range(26, 8, -4):
         c = (220, 110, 50) if hot else (124, 96, 82)
         dbg.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], outline=c, width=2)
+    if hot:                                                    # carretel girando
+        for k in range(2):
+            ang = math.radians(F * 360 / NF / 2 + k * 180)
+            dbg.line([cx + math.cos(ang) * 10, cy + math.sin(ang) * 10, cx + math.cos(ang) * 26, cy + math.sin(ang) * 26],
+                     fill=(255, 200, 110), width=3)
     dbg.ellipse([cx - 8, cy - 8, cx + 8, cy + 8], fill=(70, 74, 82), outline=(30, 30, 34), width=2)
     solid(x, y, 2, 2)
 
@@ -460,6 +516,8 @@ def rack(x, y, h, kind):
 def forklift(x, y):
     rect(dbg, x + 0.15, y + 0.2, 0.7, 1.1, (240, 190, 20), outline=(60, 46, 6), width=2)
     rect(dbg, x + 0.25, y + 0.45, 0.5, 0.45, (40, 40, 44))
+    beacon = (255, 140, 20) if F % 4 < 2 else (120, 60, 10)      # giroflex
+    rect(dbg, x + 0.42, y + 0.6, 0.16, 0.16, beacon)
     rect(dbg, x + 0.25, y + 1.3, 0.12, 0.55, (70, 70, 76))
     rect(dbg, x + 0.63, y + 1.3, 0.12, 0.55, (70, 70, 76))
     for wy in (0.3, 1.0):
@@ -566,6 +624,8 @@ def screen(x, y, w, kind="chart"):
             prect(dbg, x0 + i * bw + 1, y1 - hh, x0 + i * bw + bw - 2, y1, (80, 170, 240) if i % 2 else (240, 196, 30))
         pts = [(x0 + i * bw + bw // 2, y1 - hs[i] - 2) for i in range(len(hs))]
         dbg.line(pts, fill=(240, 80, 70), width=2)
+        px_, py_ = pts[F % len(pts)]
+        dbg.ellipse([px_ - 3, py_ - 3, px_ + 3, py_ + 3], fill=(255, 255, 255))
     else:
         text(dbg, kind, x + w / 2, y + 0.57, 11, (240, 240, 240), outline=None)
 
@@ -601,7 +661,12 @@ def counter(x, y, w, kind="buffet"):
         for k in range(w):
             rect(dbg, x + k + 0.25, y + 0.15, 0.5, 0.6, (40, 40, 44), outline=(10, 10, 10))
             rect(dbg, x + k + 0.4, y + 0.55, 0.2, 0.15, (240, 240, 240))
-            dbg.point((P(x + k + 0.5), P(y + 0.32)), fill=(255, 80, 60))
+            dbg.point((P(x + k + 0.5), P(y + 0.32)), fill=(255, 80, 60) if (F + k) % 4 < 2 else (90, 30, 20))
+            for j in range(2):                                 # vapor
+                ph = ((F + j * NF / 2 + k) % NF) / NF
+                sx = P(x + k + 0.5) + math.sin(ph * 6 + k) * 3
+                sy = P(y + 0.5) - ph * 16
+                dbg.ellipse([sx - 2, sy - 2, sx + 2, sy + 2], fill=(250, 250, 250))
     solid(x, y, w, 1)
 
 
@@ -682,9 +747,11 @@ def crane(x, y0, y1):
         for k in range(P(x) - 10, P(x + 1) + 9, 8):
             prect(dfg, k, ya + 6, k + 3, ya + 24, (240, 196, 30))
     # carro da talha + gancho
-    ym = P((y0 + y1) / 2)
+    ping = [0, 1, 2, 3, 4, 3, 2, 1][F % 8]
+    ym = P((y0 + y1) / 2) + (ping - 2) * 8                     # talha indo e voltando
     prect(dfg, P(x) - 6, ym - 14, P(x + 1) + 5, ym + 14, (60, 60, 66), outline=(20, 20, 20))
     prect(dfg, P(x) + 10, ym - 6, P(x) + 21, ym + 6, (240, 196, 30), outline=(20, 20, 20))
+    prect(dfg, P(x) + 13, ym - 12, P(x) + 18, ym - 8, (255, 60, 40) if F % 2 else (110, 20, 10))
 
 
 def crane_rails(x0, x1, y):
@@ -699,264 +766,267 @@ def dock_door(x, y):
     solid(x, y)
 
 
-# =================================================================== CENÁRIO
-# --- base: grama
-fill(0, 0, W, H, "grass", 3)
+def scene():
+    """Desenha o cenário inteiro no quadro F."""
+    # =================================================================== CENÁRIO
+    # --- base: grama
+    fill(0, 0, W, H, "grass", 3)
 
-# --- ruas
-fill(0, 20, W, 2, "asphalt")
-fill(46, 20, 2, H - 20, "asphalt")
-for k in range(0, W * T, 48):
-    if not (P(46) - 10 < k < P(48) + 10):
-        prect(dbg, k, P(21) - 2, k + 24, P(21) + 1, (240, 196, 30))
-for k in range(P(22), H * T, 48):
-    prect(dbg, P(47) - 2, k, P(47) + 1, k + 24, (240, 196, 30))
+    # --- ruas
+    fill(0, 20, W, 2, "asphalt")
+    fill(46, 20, 2, H - 20, "asphalt")
+    for k in range(0, W * T, 48):
+        if not (P(46) - 10 < k < P(48) + 10):
+            prect(dbg, k, P(21) - 2, k + 24, P(21) + 1, (240, 196, 30))
+    for k in range(P(22), H * T, 48):
+        prect(dbg, P(47) - 2, k, P(47) + 1, k + 24, (240, 196, 30))
 
-# --- calçadas
-fill(2, 22, 44, 1, "paving")          # frente do escritório / refeitório
-fill(31, 22, 1, 23, "paving")         # entre escritório e refeitório
-fill(45, 22, 1, 23, "paving")         # ao lado da rua
-fill(2, 41, 29, 1, "paving")          # frente do escritório (sul)
-fill(47, 2, 1, 18, "paving")          # corredor entre galpão e CD
-fill(32, 37, 13, 8, "plaza")          # praça de entrada
+    # --- calçadas
+    fill(2, 22, 44, 1, "paving")          # frente do escritório / refeitório
+    fill(31, 22, 1, 23, "paving")         # entre escritório e refeitório
+    fill(45, 22, 1, 23, "paving")         # ao lado da rua
+    fill(2, 41, 29, 1, "paving")          # frente do escritório (sul)
+    fill(47, 2, 1, 18, "paving")          # corredor entre galpão e CD
+    fill(32, 37, 13, 8, "plaza")          # praça de entrada
 
-# --- pátio de carretas
-fill(60, 2, 5, 18, "asphalt")
-for yy in (3.9, 7.9, 11.9, 15.9):
-    prect(dbg, P(60), P(yy), P(65) - 1, P(yy) + 2, (230, 230, 230))
+    # --- pátio de carretas
+    fill(60, 2, 5, 18, "asphalt")
+    for yy in (3.9, 7.9, 11.9, 15.9):
+        prect(dbg, P(60), P(yy), P(65) - 1, P(yy) + 2, (230, 230, 230))
 
-# --- estacionamento
-fill(48, 22, 17, 24, "asphalt")
-fill(48, 22, 17, 1, "paving")
-for row_y in (24, 30):
-    for k in range(49, 64):
-        prect(dbg, P(k), P(row_y), P(k) + 2, P(row_y + 2), (230, 230, 230))
-rnd = random.Random(42)
-palette = [(200, 40, 40), (240, 240, 240), (40, 40, 44), (40, 90, 170), (150, 150, 156), (220, 180, 40), (60, 120, 70)]
-for row_y in (24, 30):
-    for k in range(49, 63):
-        if rnd.random() < 0.62:
-            car(k, row_y, rnd.choice(palette))
-# portaria
-rect(dbg, 48, 39, 3, 3, (60, 60, 64))
-hwall(48, 39, 3, "office")
-rect(dbg, 48.15, 40, 2.7, 2, (226, 222, 214))
-rect(dbg, 48.3, 40.2, 1.4, 0.5, (196, 160, 116), outline=(120, 90, 60))
-rect(dbg, 48.4, 40.25, 0.5, 0.3, (60, 140, 200))
-plaque(48, 39, 3, "PORTARIA", size=12)
-solid(48, 39, 3, 3)
-# cancela (levantada)
-rect(dbg, 45.6, 40.3, 0.4, 0.4, (200, 40, 40))
-for k in range(6):
-    c = (240, 240, 240) if k % 2 else (220, 40, 40)
-    prect(dfg, P(45.75) - 2, P(40.2) - k * 12 - 12, P(45.75) + 2, P(40.2) - k * 12, c)
-solid(45, 40)
+    # --- estacionamento
+    fill(48, 22, 17, 24, "asphalt")
+    fill(48, 22, 17, 1, "paving")
+    for row_y in (24, 30):
+        for k in range(49, 64):
+            prect(dbg, P(k), P(row_y), P(k) + 2, P(row_y + 2), (230, 230, 230))
+    rnd = random.Random(42)
+    palette = [(200, 40, 40), (240, 240, 240), (40, 40, 44), (40, 90, 170), (150, 150, 156), (220, 180, 40), (60, 120, 70)]
+    for row_y in (24, 30):
+        for k in range(49, 63):
+            if rnd.random() < 0.62:
+                car(k, row_y, rnd.choice(palette))
+    # portaria
+    rect(dbg, 48, 39, 3, 3, (60, 60, 64))
+    hwall(48, 39, 3, "office")
+    rect(dbg, 48.15, 40, 2.7, 2, (226, 222, 214))
+    rect(dbg, 48.3, 40.2, 1.4, 0.5, (196, 160, 116), outline=(120, 90, 60))
+    rect(dbg, 48.4, 40.25, 0.5, 0.3, (60, 140, 200))
+    plaque(48, 39, 3, "PORTARIA", size=12)
+    solid(48, 39, 3, 3)
+    # cancela (levantada)
+    rect(dbg, 45.6, 40.3, 0.4, 0.4, (200, 40, 40))
+    for k in range(6):
+        c = (240, 240, 240) if k % 2 else (220, 40, 40)
+        prect(dfg, P(45.75) - 2, P(40.2) - k * 12 - 12, P(45.75) + 2, P(40.2) - k * 12, c)
+    solid(45, 40)
 
-# =================================================================== GALPÃO
-GX0, GY0, GX1, GY1 = 2, 2, 46, 19
-fill(GX0 + 1, GY0 + 1, GX1 - GX0 - 1, GY1 - GY0 - 1, "concrete")
-fill(3, 3, 14, 13, "grate")                               # aciaria
-fill(3, 16, 43, 2, "walkway")                             # passarela de pedestres
-for yy in (16, 18):
-    prect(dbg, P(3), P(yy) - 2, P(46) - 1, P(yy) + 1, (240, 240, 240))
-for k in range(P(3) + 8, P(46), 64):                      # setas da passarela
-    dbg.polygon([(k, P(17) - 6), (k + 12, P(17)), (k, P(17) + 6)], fill=(230, 240, 230))
-# divisórias de área pintadas no chão
-for xx in (17, 34):
-    prect(dbg, P(xx) - 2, P(3), P(xx) + 1, P(16) - 3, (240, 196, 30))
-building(GX0, GY0, GX1, GY1, "galpao",
-         bottom_doors=(8, 9, 24, 25, 40, 41), right_doors=(16, 17))
-plaque(4, 2, 8, "ACIARIA", size=15)
-plaque(20, 2, 10, "LAMINAÇÃO", size=15)
-plaque(35, 2, 10, "PÁTIO DE PRODUTOS", size=15)
-plaque(13, 19, 8, "USINA AÇO CEARENSE", size=13)
-plaque(29, 19, 8, "USE EPI · CAPACETE", size=12, bgc=(30, 110, 60))
+    # =================================================================== GALPÃO
+    GX0, GY0, GX1, GY1 = 2, 2, 46, 19
+    fill(GX0 + 1, GY0 + 1, GX1 - GX0 - 1, GY1 - GY0 - 1, "concrete")
+    fill(3, 3, 14, 13, "grate")                               # aciaria
+    fill(3, 16, 43, 2, "walkway")                             # passarela de pedestres
+    for yy in (16, 18):
+        prect(dbg, P(3), P(yy) - 2, P(46) - 1, P(yy) + 1, (240, 240, 240))
+    for k in range(P(3) + 8 + F * 8, P(46) - 12, 64):          # setas da passarela (andando)
+        dbg.polygon([(k, P(17) - 6), (k + 12, P(17)), (k, P(17) + 6)], fill=(230, 240, 230))
+    # divisórias de área pintadas no chão
+    for xx in (17, 34):
+        prect(dbg, P(xx) - 2, P(3), P(xx) + 1, P(16) - 3, (240, 196, 30))
+    building(GX0, GY0, GX1, GY1, "galpao",
+             bottom_doors=(8, 9, 24, 25, 40, 41), right_doors=(16, 17))
+    plaque(4, 2, 8, "ACIARIA", size=15)
+    plaque(20, 2, 10, "LAMINAÇÃO", size=15)
+    plaque(35, 2, 10, "PÁTIO DE PRODUTOS", size=15)
+    plaque(13, 19, 8, "USINA AÇO CEARENSE", size=13)
+    plaque(29, 19, 8, "USE EPI · CAPACETE", size=12, bgc=(30, 110, 60))
 
-# --- ACIARIA
-hazard_border(3, 3, 6, 6)
-furnace(4, 4)
-rails(9, 5, 7)
-rails(9, 6, 7)
-ladle(11, 5)
-rect(dbg, 14.2, 4.0, 1.6, 1.1, (90, 94, 100), outline=(30, 30, 34), width=2)   # cesta de sucata
-for i in range(10):
-    rr = random.Random(i)
-    sx, sy = P(14.3) + rr.randrange(40), P(4.1) + rr.randrange(26)
-    prect(dbg, sx, sy, sx + 6, sy + 4, rr.choice([(120, 100, 90), (90, 80, 76), (140, 120, 100)]))
-solid(14, 4, 2, 1)
-caster(4, 10)
-billets(12, 10, 4, 1, hot=True)
-billets(12, 12, 4, 1, hot=False)
-floor_label(10, 14.3, "ACIARIA · FEA", 20)
+    # --- ACIARIA
+    hazard_border(3, 3, 6, 6)
+    furnace(4, 4)
+    rails(9, 5, 7)
+    rails(9, 6, 7)
+    ladle(11, 5)
+    rect(dbg, 14.2, 4.0, 1.6, 1.1, (90, 94, 100), outline=(30, 30, 34), width=2)   # cesta de sucata
+    for i in range(10):
+        rr = random.Random(i)
+        sx, sy = P(14.3) + rr.randrange(40), P(4.1) + rr.randrange(26)
+        prect(dbg, sx, sy, sx + 6, sy + 4, rr.choice([(120, 100, 90), (90, 80, 76), (140, 120, 100)]))
+    solid(14, 4, 2, 1)
+    caster(4, 10)
+    billets(12, 10, 4, 1, hot=True)
+    billets(12, 12, 4, 1, hot=False)
+    floor_label(10, 14.3, "ACIARIA · FEA", 20)
 
-# --- LAMINAÇÃO
-reheating_furnace(18, 4)
-roller_table(21, 6, 13, 0.0, 0.75)
-for sx in (22, 25, 28):
-    rolling_stand(sx, 5)
-cooling_bed(21, 9, 9, 3)
-spool(31, 9, hot=True)
-spool(31, 12, hot=False)
-# cabine de controle (púlpito)
-rect(dbg, 18, 10, 2.6, 3, (40, 44, 52), outline=(20, 20, 24), width=3)
-rect(dbg, 18.15, 10.15, 2.3, 2.7, (130, 180, 210))
-for i in range(3):
-    rect(dbg, 18.3, 10.35 + i * 0.85, 0.7, 0.45, (20, 20, 24))
-    rect(dbg, 18.35, 10.4 + i * 0.85, 0.6, 0.32, (80, 220, 140) if i != 1 else (240, 120, 60))
-solid(18, 10, 3, 3)
-floor_label(25.5, 14.3, "LAMINAÇÃO · VERGALHÃO SI-50 / CARRETEL", 17)
+    # --- LAMINAÇÃO
+    reheating_furnace(18, 4)
+    roller_table(21, 6, 13, 0.0, 0.75)
+    for sx in (22, 25, 28):
+        rolling_stand(sx, 5)
+    cooling_bed(21, 9, 9, 3)
+    spool(31, 9, hot=True)
+    spool(31, 12, hot=False)
+    # cabine de controle (púlpito)
+    rect(dbg, 18, 10, 2.6, 3, (40, 44, 52), outline=(20, 20, 24), width=3)
+    rect(dbg, 18.15, 10.15, 2.3, 2.7, (130, 180, 210))
+    for i in range(3):
+        rect(dbg, 18.3, 10.35 + i * 0.85, 0.7, 0.45, (20, 20, 24))
+        rect(dbg, 18.35, 10.4 + i * 0.85, 0.6, 0.32, (80, 220, 140) if i != 1 else (240, 120, 60))
+    solid(18, 10, 3, 3)
+    floor_label(25.5, 14.3, "LAMINAÇÃO · VERGALHÃO SI-50 / CARRETEL", 17)
 
-# --- PÁTIO DE PRODUTOS
-tags = [((240, 196, 30), "8mm"), ((40, 110, 200), "10mm"), ((220, 60, 50), "12.5"), ((40, 160, 80), "16mm")]
-for i, (yy) in enumerate((4, 5, 7, 8)):
-    rebar_bundle(35, yy, 4, *tags[i % 4])
-    rebar_bundle(40, yy, 5, *tags[(i + 1) % 4])
-for yy in (11, 12):
-    for xx in range(35, 40):
-        wire_coil(xx, yy)
-spool(40, 11)
-mesh_stack(42, 11, 3, 2)
-forklift(44, 13)
-floor_label(39.5, 14.3, "VERGALHÃO · FIO-MÁQUINA · TELAS", 16)
+    # --- PÁTIO DE PRODUTOS
+    tags = [((240, 196, 30), "8mm"), ((40, 110, 200), "10mm"), ((220, 60, 50), "12.5"), ((40, 160, 80), "16mm")]
+    for i, (yy) in enumerate((4, 5, 7, 8)):
+        rebar_bundle(35, yy, 4, *tags[i % 4])
+        rebar_bundle(40, yy, 5, *tags[(i + 1) % 4])
+    for yy in (11, 12):
+        for xx in range(35, 40):
+            wire_coil(xx, yy)
+    spool(40, 11)
+    mesh_stack(42, 11, 3, 2)
+    forklift(44, 13)
+    floor_label(39.5, 14.3, "VERGALHÃO · FIO-MÁQUINA · TELAS", 16)
 
-# --- pontes rolantes (por cima)
-crane_rails(3, 46, 3)
-crane_rails(3, 46, 15)
-crane(13, 3, 15)
-crane(34, 3, 15)
+    # --- pontes rolantes (por cima)
+    crane_rails(3, 46, 3)
+    crane_rails(3, 46, 15)
+    crane(13, 3, 15)
+    crane(34, 3, 15)
 
-# ======================================================= CENTRO DE DISTRIBUIÇÃO
-CX0, CY0, CX1, CY1 = 48, 2, 59, 19
-fill(CX0 + 1, CY0 + 1, CX1 - CX0 - 1, CY1 - CY0 - 1, "concrete")
-building(CX0, CY0, CX1, CY1, "galpao", bottom_doors=(53, 54), left_doors=(16, 17))
-plaque(49, 2, 10, "CENTRO DE DISTRIBUIÇÃO", size=12)
-for (rx, kind) in ((49, "telhas"), (52, "tubos"), (55, "perfis")):
-    rack(rx, 4, 8, kind)
-rack(57, 4, 4, "arames")
-rack(57, 9, 3, "vergalhao")
-text(dbg, "TELHAS", 50, 3.55, 10, (255, 255, 255), outline=(0, 0, 0), stroke=2)
-text(dbg, "TUBOS", 53, 3.55, 10, (255, 255, 255), outline=(0, 0, 0), stroke=2)
-text(dbg, "PERFIS", 56, 3.55, 10, (255, 255, 255), outline=(0, 0, 0), stroke=2)
-for dy in (5, 9, 13):
-    dock_door(59, dy)
-for (yy, c, ld) in ((4.5, (20, 70, 140), "vergalhao"), (8.5, (200, 40, 40), "carga"), (12.5, (240, 240, 240), "vergalhao")):
-    truck(60, int(yy), ld, c)
-forklift(57, 14)
-mesh_stack(50, 14, 2, 1)
-mesh_stack(50, 15, 2, 1)
-floor_label(54, 17.2, "EXPEDIÇÃO", 18)
+    # ======================================================= CENTRO DE DISTRIBUIÇÃO
+    CX0, CY0, CX1, CY1 = 48, 2, 59, 19
+    fill(CX0 + 1, CY0 + 1, CX1 - CX0 - 1, CY1 - CY0 - 1, "concrete")
+    building(CX0, CY0, CX1, CY1, "galpao", bottom_doors=(53, 54), left_doors=(16, 17))
+    plaque(49, 2, 10, "CENTRO DE DISTRIBUIÇÃO", size=12)
+    for (rx, kind) in ((49, "telhas"), (52, "tubos"), (55, "perfis")):
+        rack(rx, 4, 8, kind)
+    rack(57, 4, 4, "arames")
+    rack(57, 9, 3, "vergalhao")
+    text(dbg, "TELHAS", 50, 3.55, 10, (255, 255, 255), outline=(0, 0, 0), stroke=2)
+    text(dbg, "TUBOS", 53, 3.55, 10, (255, 255, 255), outline=(0, 0, 0), stroke=2)
+    text(dbg, "PERFIS", 56, 3.55, 10, (255, 255, 255), outline=(0, 0, 0), stroke=2)
+    for dy in (5, 9, 13):
+        dock_door(59, dy)
+    for (yy, c, ld) in ((4.5, (20, 70, 140), "vergalhao"), (8.5, (200, 40, 40), "carga"), (12.5, (240, 240, 240), "vergalhao")):
+        truck(60, int(yy), ld, c)
+    forklift(57, 14)
+    mesh_stack(50, 14, 2, 1)
+    mesh_stack(50, 15, 2, 1)
+    floor_label(54, 17.2, "EXPEDIÇÃO", 18)
 
-# ========================================================= ESCRITÓRIO
-OX0, OY0, OX1, OY1 = 2, 23, 30, 40
-fill(3, 24, 8, 7, "carpet_blue")       # sala de reunião
-fill(12, 24, 10, 7, "carpet_blue")     # sala S&OP
-fill(23, 24, 7, 7, "wood", 3)          # diretoria
-fill(3, 32, 17, 8, "carpet_gray")      # escritório aberto
-fill(3, 35, 5, 5, "carpet_green")      # área de foco
-fill(21, 32, 9, 8, "lobby")            # recepção
-building(OX0, OY0, OX1, OY1, "office", bottom_doors=(24, 25, 26))
-hwall(3, 31, 27, "office", doors=(6, 7, 16, 17, 26))
-vwall(11, 24, 7, "office")
-vwall(22, 24, 7, "office")
-vwall(20, 32, 8, "office", doors=(35, 36))
-hwall(3, 34, 5, "office", doors=(5, 6))           # divisória da área de foco
-plaque(4, 31, 2, "REUNIÃO", size=8)
-plaque(13, 31, 3, "SALA S&OP", size=11)
-plaque(27, 31, 3, "DIRETORIA", size=10)
-plaque(21, 40, 3, "RECEPÇÃO", size=11)
-plaque(27, 40, 3, "ESCRITÓRIO", size=10)
-plaque(3, 34, 2, "FOCO", size=10, bgc=(30, 110, 60))
+    # ========================================================= ESCRITÓRIO
+    OX0, OY0, OX1, OY1 = 2, 23, 30, 40
+    fill(3, 24, 8, 7, "carpet_blue")       # sala de reunião
+    fill(12, 24, 10, 7, "carpet_blue")     # sala S&OP
+    fill(23, 24, 7, 7, "wood", 3)          # diretoria
+    fill(3, 32, 17, 8, "carpet_gray")      # escritório aberto
+    fill(3, 35, 5, 5, "carpet_green")      # área de foco
+    fill(21, 32, 9, 8, "lobby")            # recepção
+    building(OX0, OY0, OX1, OY1, "office", bottom_doors=(24, 25, 26))
+    hwall(3, 31, 27, "office", doors=(6, 7, 16, 17, 26))
+    vwall(11, 24, 7, "office")
+    vwall(22, 24, 7, "office")
+    vwall(20, 32, 8, "office", doors=(35, 36))
+    hwall(3, 34, 5, "office", doors=(5, 6))           # divisória da área de foco
+    plaque(4, 31, 2, "REUNIÃO", size=8)
+    plaque(13, 31, 3, "SALA S&OP", size=11)
+    plaque(27, 31, 3, "DIRETORIA", size=10)
+    plaque(21, 40, 3, "RECEPÇÃO", size=11)
+    plaque(27, 40, 3, "ESCRITÓRIO", size=10)
+    plaque(3, 34, 2, "FOCO", size=10, bgc=(30, 110, 60))
 
-# sala de reunião
-screen(5, 23, 3, "chart")
-table(5, 26, 3, 2)
-plant(3, 24)
-plant(10, 24)
-# sala S&OP
-screen(13, 23, 4, "chart")
-screen(18, 23, 3, "S&OP")
-table(14, 26, 5, 2, c=(60, 64, 76), chair_c=(196, 74, 56))
-text(dbg, "S&OP", 16.5, 27, 18, (240, 196, 30), outline=(20, 20, 20), stroke=2)
-plant(12, 30)
-plant(21, 24)
-# diretoria
-bookshelf(23, 24, 3)
-desk(25, 26)
-sofa(23, 29, 3, (120, 40, 40))
-plant(29, 24)
-# escritório aberto
-for (dx, dy) in ((9, 32), (11, 32), (14, 32), (16, 32), (9, 35), (11, 35), (14, 35), (16, 35), (9, 38), (11, 38), (14, 38), (16, 38)):
-    if dy == 38:
-        rect(dbg, dx + 0.05, dy + 0.1, 1.9, 0.8, (196, 160, 116), outline=(120, 90, 60), width=2)
-        rect(dbg, dx + 0.6, dy + 0.15, 0.8, 0.4, (30, 30, 36))
-        rect(dbg, dx + 0.66, dy + 0.2, 0.68, 0.28, (60, 140, 200))
-        solid(dx, dy, 2, 1)
-    else:
-        desk(dx, dy)
-plant(19, 32)
-plant(3, 32)
-text(dbg, "PCP · LOGÍSTICA · COMERCIAL", 13.5, 34.5, 10, (230, 230, 236), outline=(40, 40, 44), stroke=2)
-# área de foco
-bookshelf(3, 39, 3)
-sofa(3, 36, 2, (50, 90, 70))
-plant(7, 39)
-# recepção
-rect(dbg, 23, 33, 5, 1, (40, 54, 80), outline=(20, 26, 40), width=3)
-rect(dbg, 23.1, 33.1, 4.8, 0.4, (210, 212, 216))
-logo(dbg, P(25.5), P(33.6), 0.5)
-solid(23, 33, 5, 1)
-chair(25, 32.2, (40, 44, 52))
-logo(dbg, P(25.5), P(36.5), 1.5)                    # logo no piso
-sofa(21, 38, 2, (40, 60, 110))
-safety_board(28, 38)
-plant(21, 32)
-plant(29, 32)
-helmet_rack(21, 35, 1)
+    # sala de reunião
+    screen(5, 23, 3, "chart")
+    table(5, 26, 3, 2)
+    plant(3, 24)
+    plant(10, 24)
+    # sala S&OP
+    screen(13, 23, 4, "chart")
+    screen(18, 23, 3, "S&OP")
+    table(14, 26, 5, 2, c=(60, 64, 76), chair_c=(196, 74, 56))
+    text(dbg, "S&OP", 16.5, 27, 18, (240, 196, 30), outline=(20, 20, 20), stroke=2)
+    plant(12, 30)
+    plant(21, 24)
+    # diretoria
+    bookshelf(23, 24, 3)
+    desk(25, 26)
+    sofa(23, 29, 3, (120, 40, 40))
+    plant(29, 24)
+    # escritório aberto
+    for (dx, dy) in ((9, 32), (11, 32), (14, 32), (16, 32), (9, 35), (11, 35), (14, 35), (16, 35), (9, 38), (11, 38), (14, 38), (16, 38)):
+        if dy == 38:
+            rect(dbg, dx + 0.05, dy + 0.1, 1.9, 0.8, (196, 160, 116), outline=(120, 90, 60), width=2)
+            rect(dbg, dx + 0.6, dy + 0.15, 0.8, 0.4, (30, 30, 36))
+            rect(dbg, dx + 0.66, dy + 0.2, 0.68, 0.28, (60, 140, 200))
+            solid(dx, dy, 2, 1)
+        else:
+            desk(dx, dy)
+    plant(19, 32)
+    plant(3, 32)
+    text(dbg, "PCP · LOGÍSTICA · COMERCIAL", 13.5, 34.5, 10, (230, 230, 236), outline=(40, 40, 44), stroke=2)
+    # área de foco
+    bookshelf(3, 39, 3)
+    sofa(3, 36, 2, (50, 90, 70))
+    plant(7, 39)
+    # recepção
+    rect(dbg, 23, 33, 5, 1, (40, 54, 80), outline=(20, 26, 40), width=3)
+    rect(dbg, 23.1, 33.1, 4.8, 0.4, (210, 212, 216))
+    logo(dbg, P(25.5), P(33.6), 0.5)
+    solid(23, 33, 5, 1)
+    chair(25, 32.2, (40, 44, 52))
+    logo(dbg, P(25.5), P(36.5), 1.5)                    # logo no piso
+    sofa(21, 38, 2, (40, 60, 110))
+    safety_board(28, 38)
+    plant(21, 32)
+    plant(29, 32)
+    helmet_rack(21, 35, 1)
 
-# ========================================================= REFEITÓRIO
-RX0, RY0, RX1, RY1 = 32, 23, 44, 36
-fill(33, 24, 11, 12, "checker")
-building(RX0, RY0, RX1, RY1, "refeit", bottom_doors=(37, 38, 39))
-plaque(34, 23, 6, "REFEITÓRIO", size=13, bgc=(160, 50, 40))
-plaque(40, 36, 4, "CAFÉ COM AÇO", size=11, bgc=(160, 50, 40))
-counter(33, 24, 6, "buffet")
-counter(40, 24, 3, "cafe")
-plant(43, 24)
-for (tx, ty) in ((34, 27), (38, 27), (42, 27), (34, 31), (38, 31), (42, 31)):
-    if tx + 1 < RX1:
-        round_table(tx, ty)
-plant(33, 35)
-plant(43, 35)
+    # ========================================================= REFEITÓRIO
+    RX0, RY0, RX1, RY1 = 32, 23, 44, 36
+    fill(33, 24, 11, 12, "checker")
+    building(RX0, RY0, RX1, RY1, "refeit", bottom_doors=(37, 38, 39))
+    plaque(34, 23, 6, "REFEITÓRIO", size=13, bgc=(160, 50, 40))
+    plaque(40, 36, 4, "CAFÉ COM AÇO", size=11, bgc=(160, 50, 40))
+    counter(33, 24, 6, "buffet")
+    counter(40, 24, 3, "cafe")
+    plant(43, 24)
+    for (tx, ty) in ((34, 27), (38, 27), (42, 27), (34, 31), (38, 31), (42, 31)):
+        if tx + 1 < RX1:
+            round_table(tx, ty)
+    plant(33, 35)
+    plant(43, 35)
 
-# ========================================================= PRAÇA / ENTRADA
-monument(34, 38, 9)
-for (bx, by) in ((32, 41), (44, 41)):
-    bush(bx, by)
-bench(33, 44, 3)
-bench(41, 44, 3)
-for xx in (32, 44):
-    bush(xx, 38)
-# flores ao lado do letreiro
-for xx in (33, 43):
-    rect(dbg, xx + 0.1, 38.2, 0.8, 1.6, (120, 80, 50))
-    for k in range(5):
-        dbg.ellipse([P(xx) + 6, P(38.3) + k * 9, P(xx) + 14, P(38.3) + k * 9 + 8],
-                    fill=[(230, 60, 80), (240, 220, 60), (240, 240, 240)][k % 3])
-    solid(xx, 38, 1, 2)
-text(dbg, "BEM-VINDO(A)!", 38.5, 43.5, 18, (255, 255, 255), outline=(20, 54, 104), stroke=3)
+    # ========================================================= PRAÇA / ENTRADA
+    monument(34, 38, 9)
+    for (bx, by) in ((32, 41), (44, 41)):
+        bush(bx, by)
+    bench(33, 44, 3)
+    bench(41, 44, 3)
+    for xx in (32, 44):
+        bush(xx, 38)
+    # flores ao lado do letreiro
+    for xx in (33, 43):
+        rect(dbg, xx + 0.1, 38.2, 0.8, 1.6, (120, 80, 50))
+        for k in range(5):
+            dbg.ellipse([P(xx) + 6, P(38.3) + k * 9, P(xx) + 14, P(38.3) + k * 9 + 8],
+                        fill=[(230, 60, 80), (240, 220, 60), (240, 240, 240)][k % 3])
+        solid(xx, 38, 1, 2)
+    text(dbg, "BEM-VINDO(A)!", 38.5, 43.5, 18, (255, 255, 255), outline=(20, 54, 104), stroke=3)
 
-# ========================================================= ÁRVORES
-trees = [(0, 1), (0, 6), (1, 11), (0, 16), (0, 25), (1, 30), (0, 35), (1, 40), (0, 44),
-         (5, 0), (11, 1), (18, 0), (24, 1), (31, 0), (39, 1), (44, 0), (52, 1), (58, 0), (64, 1),
-         (65, 7), (65, 13), (65, 18),
-         (4, 43), (10, 44), (16, 43), (22, 44), (28, 43)]
-for i, (tx, ty) in enumerate(trees):
-    tree(tx, ty, i)
-for (bx, by) in ((3, 42), (13, 42), (19, 42), (25, 42), (8, 43), (30, 44)):
-    bush(bx, by)
+    # ========================================================= ÁRVORES
+    trees = [(0, 1), (0, 6), (1, 11), (0, 16), (0, 25), (1, 30), (0, 35), (1, 40), (0, 44),
+             (5, 0), (11, 1), (18, 0), (24, 1), (31, 0), (39, 1), (44, 0), (52, 1), (58, 0), (64, 1),
+             (65, 7), (65, 13), (65, 18),
+             (4, 43), (10, 44), (16, 43), (22, 44), (28, 43)]
+    for i, (tx, ty) in enumerate(trees):
+        tree(tx, ty, i)
+    for (bx, by) in ((3, 42), (13, 42), (19, 42), (25, 42), (8, 43), (30, 44)):
+        bush(bx, by)
 
-# bordas do mapa: impede andar para fora pela grama do topo
-# (o próprio mapa já limita, nada a fazer)
+    # bordas do mapa: impede andar para fora pela grama do topo
+    # (o próprio mapa já limita, nada a fazer)
+
 
 # ===================================================================== ÁREAS
 areas = []
@@ -982,8 +1052,22 @@ for (x, y) in START:
     free(x, y)
 
 # ============================================================ MONTAGEM TILED
+frames = []
+for F in range(NF):
+    bg = Image.new("RGBA", (W * T, H * T), (0, 0, 0, 255))
+    fg = Image.new("RGBA", (W * T, H * T), (0, 0, 0, 0))
+    dbg, dfg = ImageDraw.Draw(bg), ImageDraw.Draw(fg)
+    col = [[False] * W for _ in range(H)]
+    scene()
+    for (x, y) in START:
+        free(x, y)
+    frames.append((bg, fg, col))
+bg, fg, col = frames[0]
+
 tiles = []          # lista de imagens 32x32
 index = {}          # hash -> id local
+anims = {}          # sequência de quadros -> id do tile animado
+animations = {}     # id do tile animado -> lista de ids dos quadros
 
 
 def tile_id(im):
@@ -994,13 +1078,28 @@ def tile_id(im):
     return index[h]
 
 
+def place(layer_no, box, allow_empty):
+    ims = [fr[layer_no].crop(box) for fr in frames]
+    hs = [hashlib.md5(im.tobytes()).hexdigest() for im in ims]
+    if len(set(hs)) == 1:
+        if allow_empty and ims[0].getbbox() is None:
+            return 0
+        return tile_id(ims[0]) + 1
+    key = tuple(hs)
+    if key not in anims:
+        frame_ids = [tile_id(im) for im in ims]
+        anims[key] = len(tiles)
+        tiles.append(ims[0])               # tile base exclusivo (é ele que anima)
+        animations[anims[key]] = frame_ids
+    return anims[key] + 1
+
+
 floor_data, above_data = [], []
 for y in range(H):
     for x in range(W):
         box = (x * T, y * T, x * T + T, y * T + T)
-        floor_data.append(tile_id(bg.crop(box)) + 1)
-        f = fg.crop(box)
-        above_data.append(0 if f.getbbox() is None else tile_id(f) + 1)
+        floor_data.append(place(0, box, False))
+        above_data.append(place(1, box, True))
 
 # tiles especiais (transparentes) no final
 COLLIDE = len(tiles)
@@ -1067,7 +1166,9 @@ tmap = {
         "tilewidth": T, "tileheight": T, "tilecount": len(tiles), "columns": COLS,
         "margin": 0, "spacing": 0,
         "properties": [{"name": "tilesetCopyright", "type": "string", "value": "Arte original - CC BY-SA 4.0"}],
-        "tiles": [{"id": COLLIDE, "properties": [{"name": "collides", "type": "bool", "value": True}]}],
+        "tiles": [{"id": COLLIDE, "properties": [{"name": "collides", "type": "bool", "value": True}]}] +
+                 [{"id": tid, "animation": [{"tileid": f, "duration": FRAME_MS} for f in fids]}
+                  for tid, fids in sorted(animations.items())],
     }],
 }
 with open(os.path.join(ROOT, "map.json"), "w", encoding="utf-8") as fh:
@@ -1086,4 +1187,8 @@ for (x, y) in START:
     ov.rectangle([x * T + 4, y * T + 4, x * T + T - 5, y * T + T - 5], outline=(0, 255, 0, 255), width=3)
 if os.environ.get("PREVIEW_DEBUG_DIR"):
     dbgprev.convert("RGB").save(os.path.join(os.environ["PREVIEW_DEBUG_DIR"], "preview_colisoes.png"))
-print(f"tiles únicos: {len(tiles)}  tileset: {COLS * T}x{rows * T}")
+# GIF animado da prévia (região da usina, reduzida)
+gif = [Image.alpha_composite(b_, f_).crop((0, 0, 47 * T, 20 * T)).resize((47 * T // 2, 20 * T // 2), Image.LANCZOS).convert("RGB")
+       for (b_, f_, _) in frames]
+gif[0].save(os.path.join(ROOT, "preview_animado.gif"), save_all=True, append_images=gif[1:], duration=FRAME_MS, loop=0)
+print(f"tiles: {len(tiles)}  animados: {len(animations)}  tileset: {COLS * T}x{rows * T}")

@@ -4,6 +4,8 @@ Mapa 2D de uma usina siderúrgica para usar no [WorkAdventure](https://workadven
 
 ![Prévia do mapa](preview.png)
 
+![Animação da usina](preview_animado.gif)
+
 ## Como usar no WorkAdventure
 
 1. No painel `admin.workadventu.re`, abra o mundo, clique em **New Room** (ou edite uma sala) e escolha **Custom map**.
@@ -34,6 +36,18 @@ Quando a branch for mesclada na `main`, troque `ccr-8ea0acaa-n1gvpy` por `main` 
 | **Entrada** | Letreiro "AÇO CEARENSE", praça de chegada (ponto de entrada), portaria e estacionamento |
 
 Pontes rolantes e copas das árvores ficam **por cima** do personagem.
+
+### Animações
+
+O mapa usa tiles animados do Tiled (8 quadros de 150 ms):
+
+- fogo do forno elétrico, da panela, do lingotamento e do forno de reaquecimento tremulando;
+- arcos elétricos entre os eletrodos e faíscas;
+- fumaça saindo das chaminés;
+- brilho correndo na barra quente, cilindros da laminação e carretel girando;
+- talha das pontes rolantes indo e voltando, com luz piscando;
+- giroflex das empilhadeiras, setas andando na passarela;
+- vapor das máquinas de café e cursor nos gráficos da sala S&OP.
 
 ### Áreas interativas
 
