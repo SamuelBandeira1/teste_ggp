@@ -3,7 +3,7 @@
 Negócio do Samuel com Matheus (leads) e Vitu (Instagram). A produção é nossa: temos impressora 3D própria, então custo e preço são calculados por nós.
 Cidade: Fortaleza/CE. Envio de mensagens: por enquanto pelo número pessoal do Samuel (o número do bot vem depois).
 Produto da semana: plaquinhas para restaurante com tag NFC que abrem avaliação no Google, cardápio e Instagram.
-Plano completo e ordem das tarefas: `BRIEFING.md`.
+Plano completo e ordem das tarefas: `BRIEFING.md`. Pedidos avulsos e anotações do Samuel: `PENDENCIAS.md` (ler sempre que ele pedir para verificar pendências).
 
 ## Regras
 - **Nada sai para cliente sem o ok do Samuel.** O Claude prepara mensagens, links `wa.me` e propostas; quem envia é o Samuel ou o Matheus.
