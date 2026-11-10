@@ -18,6 +18,12 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
   4. Tamanho da mesa ou da placa atual. Pedir uma foto.
 - **Próximo passo:** o Claude faz 2 ou 3 opções de layout em imagem para o Samuel mostrar ao Humberto.
 
+## 1b. Humberto: besouro e moldura (pedido separado da placa)
+- **Pedido:** além da placa, o Humberto quer um **besouro** e uma **moldura**. As referências ele mandou no WhatsApp; o Samuel vai enviar as fotos.
+- **O Samuel quer fazer o fundo.** Confirmar se é o fundo da moldura (a parte de trás ou o painel atrás da foto) ou um fundo/base para o besouro.
+- **Faltam:** as fotos de referência, as medidas, as cores, e se o besouro é decorativo ou se leva NFC.
+- **Próximo passo:** com as fotos, o Claude descreve as peças (formato, medidas, cores, tempo e custo estimados no fatiador) e monta um orçamento junto com a placa.
+
 ## 2. Brindes para a confraternização de 19/11 (quinta-feira)
 - **Quantidade:** 30 brindes pequenos com a nossa marca.
 - **Prazo:** tudo impresso até 17/11, para sobrar margem para falha de impressão. Só temos uma impressora.
