@@ -28,19 +28,35 @@ dbg = ImageDraw.Draw(bg)
 dfg = ImageDraw.Draw(fg)
 col = [[False] * W for _ in range(H)]                       # colisões
 
-NF = 8          # quadros da animação
-FRAME_MS = 150  # duração de cada quadro (ms)
+NF = 128        # quadros do ciclo completo (128 x 125 ms = 16 s)
+FRAME_MS = 125  # duração de cada quadro (ms)
+LOOP = 8        # ciclo curto do fogo/faíscas (divide NF)
 F = 0           # quadro sendo desenhado agora
 
 
 def wave(phase=0.0):
-    """Oscila de -1 a 1 ao longo dos NF quadros (laço perfeito)."""
-    return math.sin((F + phase) * 2 * math.pi / NF)
+    """Oscila de -1 a 1 a cada LOOP quadros."""
+    return math.sin(((F % LOOP) + phase) * 2 * math.pi / LOOP)
 
 
 def frnd(*seed):
-    """Aleatório que muda a cada quadro."""
-    return random.Random(int(hashlib.md5(repr(seed).encode()).hexdigest()[:8], 16) + F * 7919)
+    """Aleatório que muda a cada quadro (repete a cada LOOP)."""
+    return random.Random(int(hashlib.md5(repr(seed).encode()).hexdigest()[:8], 16) + (F % LOOP) * 7919)
+
+
+def seg(f, a, b):
+    """Progresso 0..1 de f dentro do intervalo [a, b]."""
+    return min(1.0, max(0.0, (f - a) / (b - a)))
+
+
+def ease(t):
+    return t * t * (3 - 2 * t)
+
+
+def tri(period):
+    """Vai de 0 a 1 e volta a 0 a cada 'period' quadros."""
+    k = F % period
+    return 1 - abs(2 * k / period - 1)
 
 
 def font(size, weight="ExtraBold"):
@@ -251,7 +267,7 @@ def glow(d, cx, cy, r, steps=((120, 20, 10), (200, 60, 10), (240, 120, 20), (255
 
 
 def sparks(d, x, y, w, h, n, seed):
-    rnd = random.Random(seed * 1009 + F * 7919)
+    rnd = random.Random(seed * 1009 + (F % LOOP) * 7919)
     for _ in range(n):
         px, py = P(x) + rnd.randrange(P(w)), P(y) + rnd.randrange(P(h))
         c = rnd.choice([(255, 230, 120), (255, 180, 60), (255, 250, 200)])
@@ -300,7 +316,7 @@ def furnace(x, y):
     solid(x, y, 4, 4)
 
 
-def ladle(x, y):
+def ladle(x, y, solid_=True):
     """Panela de aço líquido 2x2 sobre trilhos."""
     cx, cy = P(x + 1), P(y + 1)
     dbg.ellipse([cx - 28, cy - 24, cx + 28, cy + 30], fill=(34, 34, 38))
@@ -309,7 +325,8 @@ def ladle(x, y):
     prect(dbg, cx - 31, cy - 4, cx - 26, cy + 4, (50, 50, 54))
     prect(dbg, cx + 26, cy - 4, cx + 31, cy + 4, (50, 50, 54))
     sparks(dbg, x, y - 0.2, 2, 1, 10, 5)
-    solid(x, y, 2, 2)
+    if solid_:
+        solid(x, y, 2, 2)
 
 
 def rails(x, y, w):
@@ -339,7 +356,7 @@ def caster(x, y):
             prect(dbg, xa, P(sy + 0.1), xa + P(5.4) // n + 1, P(sy + 0.32), c)
         span = P(5.4) - 4
         for m in range(4):                                     # carepa andando com o tarugo
-            mx = P(x + 1.6) + 2 + (F * span // NF + m * span // 4 + i * 9) % span
+            mx = P(x + 1.6) + 2 + ((F % 16) * (span // 4) // 16 + m * span // 4 + i * 9) % span
             prect(dbg, mx, P(sy + 0.13), mx + 2, P(sy + 0.29), (150, 40, 20))
     sparks(dbg, x + 1.4, y, 1.2, 3, 12, 7)
     solid(x, y, 7, 3)
@@ -377,7 +394,7 @@ def reheating_furnace(x, y):
 def smoke(cx, top, n=3):
     """Baforadas de fumaça que sobem e se desfazem (camada de cima)."""
     for k in range(n):
-        ph = ((F + k * NF / n) % NF) / NF
+        ph = (((F % LOOP) + k * LOOP / n) % LOOP) / LOOP
         yy = top - 4 - ph * 44
         xx = cx + math.sin(ph * 5 + k) * 6
         r = 5 + ph * 9
@@ -393,7 +410,7 @@ def roller_table(x, y, w, hot_from=0.0, hot_to=1.0):
     a, b = P(x + w * hot_from), P(x + w * hot_to)
     prect(dbg, a, P(y + 0.4), b, P(y + 0.6), (255, 110, 30))
     prect(dbg, a, P(y + 0.45), b, P(y + 0.55), (255, 210, 110))
-    for k in range(a + (F * 8) % 64, b - 10, 64):              # brilho correndo na barra
+    for k in range(a + (F % 8) * 8, b - 10, 64):              # brilho correndo na barra
         prect(dbg, k, P(y + 0.42), k + 10, P(y + 0.58), (255, 250, 220))
     solid(x, y, w, 1)
 
@@ -405,7 +422,7 @@ def rolling_stand(x, y):
     for ry in (y + 1.2, y + 1.62):
         rect(dbg, x + 0.4, ry, 1.2, 0.22, (170, 170, 178), outline=(60, 60, 66))
         for m in range(3):                                     # cilindro girando
-            mx = P(x + 0.4) + 2 + (F * 2 + m * 12) % (P(1.2) - 5)
+            mx = P(x + 0.4) + 2 + ((F % 8) * 2 + m * 12) % (P(1.2) - 5)
             prect(dbg, mx, P(ry) + 1, mx + 1, P(ry + 0.22) - 2, (110, 110, 118))
     rect(dbg, x + 0.4, y + 1.4, 1.2, 0.2, (255, 140, 40))
     rect(dbg, x + 0.7, y - 0.25, 0.6, 0.5, (240, 196, 30), outline=(60, 50, 10))       # motor
@@ -416,9 +433,16 @@ def cooling_bed(x, y, w, h):
     rect(dbg, x, y, w, h, (60, 62, 68), outline=(30, 30, 34), width=2)
     for k in range(P(x) + 6, P(x + w) - 4, 10):
         dbg.line([k, P(y) + 4, k, P(y + h) - 4], fill=(40, 40, 44), width=3)
-    for r, yy in enumerate(range(P(y) + 8, P(y + h) - 6, 9)):
-        c = shade((230, 90, 30), 1 + 0.1 * wave(r * 2)) if r < 2 else ((170, 80, 50) if r < 4 else (120, 118, 122))
+    top, bot = P(y) + 6, P(y + h) - 6
+    step = (F % 16) * 9 / 16                                   # barras descendo (leito "walking beam")
+    yy = top + step
+    while yy < bot:
+        t = (yy - top) / (bot - top)
+        hot = (255, 120, 40)
+        cold = (120, 118, 122)
+        c = tuple(int(hot[i] + (cold[i] - hot[i]) * min(1, t * 1.4)) for i in range(3))
         dbg.line([P(x) + 4, yy, P(x + w) - 4, yy], fill=c, width=3)
+        yy += 9
     solid(x, y, w, h)
 
 
@@ -432,7 +456,7 @@ def spool(x, y, hot=False):
         dbg.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], outline=c, width=2)
     if hot:                                                    # carretel girando
         for k in range(2):
-            ang = math.radians(F * 360 / NF / 2 + k * 180)
+            ang = math.radians((F % 8) * 22.5 + k * 180)
             dbg.line([cx + math.cos(ang) * 10, cy + math.sin(ang) * 10, cx + math.cos(ang) * 26, cy + math.sin(ang) * 26],
                      fill=(255, 200, 110), width=3)
     dbg.ellipse([cx - 8, cy - 8, cx + 8, cy + 8], fill=(70, 74, 82), outline=(30, 30, 34), width=2)
@@ -526,10 +550,17 @@ def forklift(x, y):
     solid(x, y, 1, 2)
 
 
-def truck(x, y, load="vergalhao", color=(20, 70, 140)):
-    """Carreta horizontal 5x2 com cabine à direita."""
+def truck(x, y, load="vergalhao", color=(20, 70, 140), bundles=None, reverse=False, moving=False, solid_=True):
+    """Carreta horizontal 5x2 com cabine à direita. bundles = nº de feixes (0..4) para carga animada."""
     rect(dbg, x + 0.05, y + 0.25, 3.9, 1.5, (60, 60, 66), outline=(20, 20, 24), width=2)
-    if load == "vergalhao":
+    if bundles is not None:
+        for b in range(bundles):                               # feixes lado a lado na carroceria
+            bx = x + 0.2 + b * 0.92
+            for i in range(8):
+                yy = P(y + 0.4) + i * 5
+                dbg.line([P(bx), yy, P(bx + 0.82), yy], fill=(128, 76, 52) if i % 2 else (104, 62, 44), width=3)
+            rect(dbg, bx + 0.36, y + 0.3, 0.1, 1.4, (240, 196, 30))
+    elif load == "vergalhao":
         for i in range(8):
             yy = P(y + 0.4) + i * 5
             dbg.line([P(x) + 6, yy, P(x + 3.9) - 6, yy], fill=(128, 76, 52) if i % 2 else (104, 62, 44), width=3)
@@ -543,16 +574,56 @@ def truck(x, y, load="vergalhao", color=(20, 70, 140)):
     for wx in (0.4, 1.2, 3.1, 4.3):
         rect(dbg, x + wx, y + 0.08, 0.4, 0.16, (20, 20, 20))
         rect(dbg, x + wx, y + 1.76, 0.4, 0.16, (20, 20, 20))
-    solid(x, y, 5, 2)
+    if reverse:                                                # luz de ré + alerta piscando
+        on = F % 4 < 2
+        for ly in (0.3, 1.5):
+            rect(dbg, x + 0.02, y + ly, 0.12, 0.2, (255, 255, 230) if on else (120, 120, 110))
+        rect(dbg, x + 4.7, y + 0.1, 0.2, 0.15, (255, 150, 20) if on else (110, 60, 10))
+    if moving:                                                 # fumaça do escapamento
+        for k in range(2):
+            ph = ((F % 4) + k * 2) / 4
+            sx, sy = P(x + 5.0) + ph * 10, P(y + 0.2) - ph * 6
+            r = 2 + ph * 4
+            dbg.ellipse([sx - r, sy - r, sx + r, sy + r], fill=(150, 150, 154))
+    if solid_:
+        solid(x, y, 5, 2)
 
 
-def car(x, y, color):
+def forklift_h(x, y, face=1, carrying=False):
+    """Empilhadeira de lado (1.2 x 0.8). face=1 garfo para a direita, -1 para a esquerda."""
+    bx0 = x
+    rect(dbg, bx0, y + 0.1, 1.2, 0.8, (240, 190, 20), outline=(60, 46, 6), width=2)
+    rect(dbg, bx0 + (0.15 if face > 0 else 0.55), y + 0.25, 0.5, 0.5, (40, 40, 44))     # cabine
+    rect(dbg, bx0 + 0.45, y + 0.42, 0.16, 0.16, (255, 140, 20) if F % 4 < 2 else (120, 60, 10))
+    fx = bx0 + 1.2 if face > 0 else bx0 - 0.65
+    rect(dbg, fx, y + 0.2, 0.65, 0.1, (70, 70, 76))
+    rect(dbg, fx, y + 0.7, 0.65, 0.1, (70, 70, 76))
+    rect(dbg, bx0 + (1.12 if face > 0 else -0.04), y + 0.08, 0.12, 0.84, (50, 50, 54))  # torre
+    for wx in (0.15, 0.85):
+        rect(dbg, bx0 + wx, y + 0.02, 0.22, 0.1, (20, 20, 20))
+        rect(dbg, bx0 + wx, y + 0.88, 0.22, 0.1, (20, 20, 20))
+    if carrying:
+        for i in range(5):
+            yy = P(y + 0.2) + i * 4
+            dbg.line([P(fx) - 2, yy, P(fx + 0.7), yy], fill=(128, 76, 52) if i % 2 else (104, 62, 44), width=3)
+        rect(dbg, fx + 0.28, y + 0.15, 0.08, 0.7, (240, 196, 30))
+
+
+def car(x, y, color, down=False, solid_=True):
     """Carro vertical 1x2."""
     rect(dbg, x + 0.15, y + 0.15, 0.7, 1.7, color, outline=shade(color, 0.5), width=2)
-    rect(dbg, x + 0.25, y + 0.5, 0.5, 0.35, (150, 200, 230))
-    rect(dbg, x + 0.25, y + 1.25, 0.5, 0.3, (120, 170, 200))
-    rect(dbg, x + 0.25, y + 0.9, 0.5, 0.32, shade(color, 1.2))
-    solid(x, y, 1, 2)
+    if down:
+        rect(dbg, x + 0.25, y + 1.15, 0.5, 0.35, (150, 200, 230))
+        rect(dbg, x + 0.25, y + 0.45, 0.5, 0.3, (120, 170, 200))
+        rect(dbg, x + 0.25, y + 0.78, 0.5, 0.32, shade(color, 1.2))
+        for lx in (0.22, 0.62):
+            rect(dbg, x + lx, y + 1.78, 0.16, 0.08, (255, 250, 200))
+    else:
+        rect(dbg, x + 0.25, y + 0.5, 0.5, 0.35, (150, 200, 230))
+        rect(dbg, x + 0.25, y + 1.25, 0.5, 0.3, (120, 170, 200))
+        rect(dbg, x + 0.25, y + 0.9, 0.5, 0.32, shade(color, 1.2))
+    if solid_:
+        solid(x, y, 1, 2)
 
 
 def tree(x, y, seed=0):
@@ -624,7 +695,7 @@ def screen(x, y, w, kind="chart"):
             prect(dbg, x0 + i * bw + 1, y1 - hh, x0 + i * bw + bw - 2, y1, (80, 170, 240) if i % 2 else (240, 196, 30))
         pts = [(x0 + i * bw + bw // 2, y1 - hs[i] - 2) for i in range(len(hs))]
         dbg.line(pts, fill=(240, 80, 70), width=2)
-        px_, py_ = pts[F % len(pts)]
+        px_, py_ = pts[F % 8 % len(pts)]
         dbg.ellipse([px_ - 3, py_ - 3, px_ + 3, py_ + 3], fill=(255, 255, 255))
     else:
         text(dbg, kind, x + w / 2, y + 0.57, 11, (240, 240, 240), outline=None)
@@ -663,7 +734,7 @@ def counter(x, y, w, kind="buffet"):
             rect(dbg, x + k + 0.4, y + 0.55, 0.2, 0.15, (240, 240, 240))
             dbg.point((P(x + k + 0.5), P(y + 0.32)), fill=(255, 80, 60) if (F + k) % 4 < 2 else (90, 30, 20))
             for j in range(2):                                 # vapor
-                ph = ((F + j * NF / 2 + k) % NF) / NF
+                ph = (((F % LOOP) + j * LOOP / 2 + k) % LOOP) / LOOP
                 sx = P(x + k + 0.5) + math.sin(ph * 6 + k) * 3
                 sy = P(y + 0.5) - ph * 16
                 dbg.ellipse([sx - 2, sy - 2, sx + 2, sy + 2], fill=(250, 250, 250))
@@ -731,7 +802,7 @@ def safety_board(x, y):
     solid(x, y, 2, 1)
 
 
-def crane(x, y0, y1):
+def crane(x, y0, y1, carry=False):
     """Ponte rolante amarela (camada de cima): viga vertical de y0 a y1 + talha."""
     for yy in range(y0, y1 + 1):
         x0, ya = P(x), P(yy)
@@ -747,8 +818,13 @@ def crane(x, y0, y1):
         for k in range(P(x) - 10, P(x + 1) + 9, 8):
             prect(dfg, k, ya + 6, k + 3, ya + 24, (240, 196, 30))
     # carro da talha + gancho
-    ping = [0, 1, 2, 3, 4, 3, 2, 1][F % 8]
-    ym = P((y0 + y1) / 2) + (ping - 2) * 8                     # talha indo e voltando
+    ym = P((y0 + y1) / 2) + (ease(tri(32)) - 0.5) * P(7)      # talha indo e voltando
+    if carry:                                                  # feixe pendurado no gancho
+        for i in range(5):
+            yy = ym + 16 + i * 3
+            dfg.line([P(x) - 30, yy, P(x + 1) + 29, yy], fill=(128, 76, 52) if i % 2 else (104, 62, 44), width=3)
+        dfg.line([P(x) + 15, ym + 6, P(x) - 18, ym + 15], fill=(30, 30, 30), width=1)
+        dfg.line([P(x) + 16, ym + 6, P(x) + 49, ym + 15], fill=(30, 30, 30), width=1)
     prect(dfg, P(x) - 6, ym - 14, P(x + 1) + 5, ym + 14, (60, 60, 66), outline=(20, 20, 20))
     prect(dfg, P(x) + 10, ym - 6, P(x) + 21, ym + 6, (240, 196, 30), outline=(20, 20, 20))
     prect(dfg, P(x) + 13, ym - 12, P(x) + 18, ym - 8, (255, 60, 40) if F % 2 else (110, 20, 10))
@@ -758,8 +834,13 @@ def crane_rails(x0, x1, y):
     dfg.line([P(x0), P(y) + 2, P(x1), P(y) + 2], fill=(40, 40, 44, 255), width=4)
 
 
-def dock_door(x, y):
+def dock_door(x, y, open_=False):
     """Porta de doca (na parede vertical leste)."""
+    if open_:
+        rect(dbg, x + 0.15, y, 0.7, 1, (34, 34, 38))
+        rect(dbg, x + 0.15, y, 0.7, 0.18, (240, 196, 30))
+        solid(x, y)
+        return
     rect(dbg, x + 0.15, y, 0.7, 1, (240, 196, 30))
     for k in range(4):
         dbg.line([P(x + 0.15), P(y) + 4 + k * 7, P(x + 0.85), P(y) + 4 + k * 7], fill=(150, 120, 10), width=2)
@@ -790,9 +871,11 @@ def scene():
     fill(32, 37, 13, 8, "plaza")          # praça de entrada
 
     # --- pátio de carretas
-    fill(60, 2, 5, 18, "asphalt")
+    fill(60, 2, 6, 18, "asphalt")
     for yy in (3.9, 7.9, 11.9, 15.9):
-        prect(dbg, P(60), P(yy), P(65) - 1, P(yy) + 2, (230, 230, 230))
+        prect(dbg, P(60), P(yy), P(66) - 1, P(yy) + 2, (230, 230, 230))
+    for k in range(P(2), P(20), 24):                           # zebrado do portão de cargas
+        prect(dbg, P(65) + 22, k, P(66) - 1, k + 11, (240, 196, 30))
 
     # --- estacionamento
     fill(48, 22, 17, 24, "asphalt")
@@ -814,12 +897,25 @@ def scene():
     rect(dbg, 48.4, 40.25, 0.5, 0.3, (60, 140, 200))
     plaque(48, 39, 3, "PORTARIA", size=12)
     solid(48, 39, 3, 3)
-    # cancela (levantada)
+    # carro saindo pela portaria (desce pela rua) e cancela abrindo
+    cy_ = 21.6 + 25 * seg(F, 0, 64)
+    if F < 64:
+        car(46.05, cy_, (40, 90, 170), down=True, solid_=False)
+    lift = ease(seg(F, 24, 32)) * (1 - ease(seg(F, 46, 54)))  # 0 = abaixada, 1 = levantada
     rect(dbg, 45.6, 40.3, 0.4, 0.4, (200, 40, 40))
-    for k in range(6):
+    ang = math.radians(90 * lift)
+    bx, by = P(45.8), P(40.5)
+    L = P(2.1)
+    ex, ey = bx + math.cos(ang) * L, by - math.sin(ang) * L
+    n = 7
+    for k in range(n):
         c = (240, 240, 240) if k % 2 else (220, 40, 40)
-        prect(dfg, P(45.75) - 2, P(40.2) - k * 12 - 12, P(45.75) + 2, P(40.2) - k * 12, c)
+        a0, a1 = k / n, (k + 1) / n
+        dfg.line([bx + (ex - bx) * a0, by + (ey - by) * a0, bx + (ex - bx) * a1, by + (ey - by) * a1], fill=c, width=4)
     solid(45, 40)
+    # caminhão de vergalhão passando na rua principal
+    rx = -6 + 73 * F / NF
+    truck(rx, 20, "vergalhao", (20, 54, 104), moving=True, solid_=False)
 
     # =================================================================== GALPÃO
     GX0, GY0, GX1, GY1 = 2, 2, 46, 19
@@ -828,7 +924,7 @@ def scene():
     fill(3, 16, 43, 2, "walkway")                             # passarela de pedestres
     for yy in (16, 18):
         prect(dbg, P(3), P(yy) - 2, P(46) - 1, P(yy) + 1, (240, 240, 240))
-    for k in range(P(3) + 8 + F * 8, P(46) - 12, 64):          # setas da passarela (andando)
+    for k in range(P(3) + 8 + (F % 8) * 8, P(46) - 12, 64):          # setas da passarela (andando)
         dbg.polygon([(k, P(17) - 6), (k + 12, P(17)), (k, P(17) + 6)], fill=(230, 240, 230))
     # divisórias de área pintadas no chão
     for xx in (17, 34):
@@ -846,7 +942,23 @@ def scene():
     furnace(4, 4)
     rails(9, 5, 7)
     rails(9, 6, 7)
-    ladle(11, 5)
+    # panela: vazamento no forno -> vai até a ponte rolante -> volta
+    if F < 32 or F >= 112:
+        lx = 9
+    elif F < 56:
+        lx = 9 + 4 * ease(seg(F, 32, 56))
+    elif F < 88:
+        lx = 13
+    else:
+        lx = 13 - 4 * ease(seg(F, 88, 112))
+    if lx == 9:                                                # jato de aço do forno para a panela
+        rnd_ = frnd("jato")
+        pts = [(P(7.75) + k * 6, P(6) - 4 + int(4 * math.sin(k + F)) + rnd_.randint(-1, 1)) for k in range(9)]
+        dbg.line(pts, fill=(255, 140, 30), width=7)
+        dbg.line(pts, fill=(255, 230, 140), width=3)
+        sparks(dbg, 8.6, 5.3, 1.4, 1.4, 14, 23)
+    ladle(lx, 5, solid_=False)
+    solid(9, 5, 5, 2)
     rect(dbg, 14.2, 4.0, 1.6, 1.1, (90, 94, 100), outline=(30, 30, 34), width=2)   # cesta de sucata
     for i in range(10):
         rr = random.Random(i)
@@ -892,7 +1004,7 @@ def scene():
     crane_rails(3, 46, 3)
     crane_rails(3, 46, 15)
     crane(13, 3, 15)
-    crane(34, 3, 15)
+    crane(34, 3, 15, carry=True)
 
     # ======================================================= CENTRO DE DISTRIBUIÇÃO
     CX0, CY0, CX1, CY1 = 48, 2, 59, 19
@@ -906,11 +1018,56 @@ def scene():
     text(dbg, "TELHAS", 50, 3.55, 10, (255, 255, 255), outline=(0, 0, 0), stroke=2)
     text(dbg, "TUBOS", 53, 3.55, 10, (255, 255, 255), outline=(0, 0, 0), stroke=2)
     text(dbg, "PERFIS", 56, 3.55, 10, (255, 255, 255), outline=(0, 0, 0), stroke=2)
-    for dy in (5, 9, 13):
-        dock_door(59, dy)
-    for (yy, c, ld) in ((4.5, (20, 70, 140), "vergalhao"), (8.5, (200, 40, 40), "carga"), (12.5, (240, 240, 240), "vergalhao")):
-        truck(60, int(yy), ld, c)
-    forklift(57, 14)
+    # doca 1: carreta parada carregada
+    dock_door(59, 5, open_=True)
+    truck(60, 4, "vergalhao", (20, 70, 140))
+
+    def truck_cycle(f):
+        """Posição x da carreta no ciclo: chega de ré (0-23), doca (24-103), sai (104-127)."""
+        if f < 24:
+            return 66.2 - 6.2 * ease(seg(f, 0, 24)), "re"
+        if f < 104:
+            return 60, "doca"
+        return 60 + 7 * seg(f, 104, 128) ** 2, "sai"
+
+    # doca 2: EXPEDIÇÃO -> carreta chega vazia, é carregada e sai (defasada meio ciclo)
+    g = (F + 64) % NF
+    tx, st_ = truck_cycle(g)
+    load = 0 if g < 34 else min(4, 1 + int((g - 34) / 16))
+    dock_door(59, 9, open_=(st_ == "doca"))
+    truck(tx, 8, color=(200, 40, 40), bundles=load if st_ != "re" else 0,
+          reverse=(st_ == "re"), moving=(st_ != "doca"), solid_=False)
+
+    # doca 3: RECEBIMENTO -> carreta chega cheia, empilhadeira descarrega, carreta sai
+    tx, st_ = truck_cycle(F)
+    trips = [28, 52, 76]                                       # início de cada viagem da empilhadeira
+    taken = sum(1 for t0 in trips if F >= t0 + 10)
+    dropped = sum(1 for t0 in trips if F >= t0 + 22)
+    dock_door(59, 13, open_=(st_ == "doca"))
+    truck(tx, 12, color=(240, 240, 240), bundles=3 - taken if F < 104 else 0,
+          reverse=(st_ == "re"), moving=(st_ != "doca"), solid_=False)
+    # pilha de recebimento
+    rect(dbg, 50, 12.9, 1.6, 0.2, (140, 100, 60))
+    for b in range(dropped):
+        for i in range(4):
+            yy = P(13.05) + b * 6 + i * 1.5
+            dbg.line([P(50.05), yy, P(51.55), yy], fill=(128, 76, 52) if i % 2 else (104, 62, 44), width=2)
+    text(dbg, "RECEBIMENTO", 50.8, 12.7, 8, (255, 255, 255), outline=(0, 0, 0), stroke=2)
+    # empilhadeira: vai até a doca, pega o feixe, volta e deixa na pilha
+    fx, face, carrying = 52.2, 1, False
+    for t0 in trips:
+        k = F - t0
+        if 0 <= k < 24:
+            if k < 9:
+                fx, face = 52.2 + 5.6 * ease(k / 9), 1
+            elif k < 12:
+                fx, face, carrying = 57.8, 1, k >= 10
+            elif k < 21:
+                fx, face, carrying = 57.8 - 5.6 * ease((k - 12) / 9) + 0.0, -1, True
+                fx += 0.65                                     # compensa o garfo ao virar
+            else:
+                fx, face, carrying = 52.85, -1, k < 22
+    forklift_h(fx, 13.1, face, carrying)
     mesh_stack(50, 14, 2, 1)
     mesh_stack(50, 15, 2, 1)
     floor_label(54, 17.2, "EXPEDIÇÃO", 18)
@@ -1017,7 +1174,6 @@ def scene():
     # ========================================================= ÁRVORES
     trees = [(0, 1), (0, 6), (1, 11), (0, 16), (0, 25), (1, 30), (0, 35), (1, 40), (0, 44),
              (5, 0), (11, 1), (18, 0), (24, 1), (31, 0), (39, 1), (44, 0), (52, 1), (58, 0), (64, 1),
-             (65, 7), (65, 13), (65, 18),
              (4, 43), (10, 44), (16, 43), (22, 44), (28, 43)]
     for i, (tx, ty) in enumerate(trees):
         tree(tx, ty, i)
@@ -1052,7 +1208,19 @@ for (x, y) in START:
     free(x, y)
 
 # ============================================================ MONTAGEM TILED
-frames = []
+import numpy as np
+
+uniq = {}                                    # hash -> imagem do tile
+seqs = [[[None] * NF for _ in range(W * H)] for _ in range(2)]   # [camada][posição][quadro] = hash
+gif = []
+first = None
+
+
+def slice_tiles(img):
+    a = np.asarray(img).reshape(H, T, W, T, 4).transpose(0, 2, 1, 3, 4)
+    return a
+
+
 for F in range(NF):
     bg = Image.new("RGBA", (W * T, H * T), (0, 0, 0, 255))
     fg = Image.new("RGBA", (W * T, H * T), (0, 0, 0, 0))
@@ -1061,45 +1229,70 @@ for F in range(NF):
     scene()
     for (x, y) in START:
         free(x, y)
-    frames.append((bg, fg, col))
-bg, fg, col = frames[0]
+    if F == 0:
+        first = (bg, fg, col)
+    for li, img in enumerate((bg, fg)):
+        arr = slice_tiles(img)
+        for y in range(H):
+            for x in range(W):
+                t = arr[y, x]
+                bts = t.tobytes()
+                h = hashlib.md5(bts).hexdigest()
+                if h not in uniq:
+                    uniq[h] = (Image.fromarray(np.ascontiguousarray(t), "RGBA"), li == 1 and not t[:, :, 3].any())
+                seqs[li][y * W + x][F] = h
+    if F % 2 == 0:
+        gif.append(Image.alpha_composite(bg, fg).crop((0, 0, W * T, 24 * T)).resize((W * T * 2 // 5, 24 * T * 2 // 5), Image.LANCZOS).convert("P", palette=Image.ADAPTIVE))
+    print(f"quadro {F + 1}/{NF}", end="\r", flush=True)
+print()
+bg, fg, col = first
 
 tiles = []          # lista de imagens 32x32
 index = {}          # hash -> id local
 anims = {}          # sequência de quadros -> id do tile animado
-animations = {}     # id do tile animado -> lista de ids dos quadros
+animations = {}     # id do tile animado -> [(id do quadro, duração ms), ...]
 
 
-def tile_id(im):
-    h = hashlib.md5(im.tobytes()).hexdigest()
+def tile_id(h):
     if h not in index:
         index[h] = len(tiles)
-        tiles.append(im)
+        tiles.append(uniq[h][0])
     return index[h]
 
 
-def place(layer_no, box, allow_empty):
-    ims = [fr[layer_no].crop(box) for fr in frames]
-    hs = [hashlib.md5(im.tobytes()).hexdigest() for im in ims]
+def period(hs):
+    p = 1
+    while p < NF:
+        if NF % p == 0 and all(hs[i] == hs[i % p] for i in range(NF)):
+            return p
+        p *= 2
+    return NF
+
+
+def place(li, pos):
+    hs = seqs[li][pos]
     if len(set(hs)) == 1:
-        if allow_empty and ims[0].getbbox() is None:
+        if li == 1 and uniq[hs[0]][1]:
             return 0
-        return tile_id(ims[0]) + 1
+        return tile_id(hs[0]) + 1
     key = tuple(hs)
     if key not in anims:
-        frame_ids = [tile_id(im) for im in ims]
+        p = period(hs)
+        runs = []
+        for h in hs[:p]:                       # junta quadros iguais seguidos (menos dados)
+            fid = tile_id(h)
+            if runs and runs[-1][0] == fid:
+                runs[-1][1] += FRAME_MS
+            else:
+                runs.append([fid, FRAME_MS])
         anims[key] = len(tiles)
-        tiles.append(ims[0])               # tile base exclusivo (é ele que anima)
-        animations[anims[key]] = frame_ids
+        tiles.append(uniq[hs[0]][0])           # tile base exclusivo (é ele que anima)
+        animations[anims[key]] = runs
     return anims[key] + 1
 
 
-floor_data, above_data = [], []
-for y in range(H):
-    for x in range(W):
-        box = (x * T, y * T, x * T + T, y * T + T)
-        floor_data.append(place(0, box, False))
-        above_data.append(place(1, box, True))
+floor_data = [place(0, i) for i in range(W * H)]
+above_data = [place(1, i) for i in range(W * H)]
 
 # tiles especiais (transparentes) no final
 COLLIDE = len(tiles)
@@ -1114,7 +1307,7 @@ start_data = [0] * (W * H)
 for (x, y) in START:
     start_data[y * W + x] = START_T + 1
 
-COLS = 32
+COLS = 64
 rows = math.ceil(len(tiles) / COLS)
 sheet = Image.new("RGBA", (COLS * T, rows * T), (0, 0, 0, 0))
 for i, im in enumerate(tiles):
@@ -1167,8 +1360,8 @@ tmap = {
         "margin": 0, "spacing": 0,
         "properties": [{"name": "tilesetCopyright", "type": "string", "value": "Arte original - CC BY-SA 4.0"}],
         "tiles": [{"id": COLLIDE, "properties": [{"name": "collides", "type": "bool", "value": True}]}] +
-                 [{"id": tid, "animation": [{"tileid": f, "duration": FRAME_MS} for f in fids]}
-                  for tid, fids in sorted(animations.items())],
+                 [{"id": tid, "animation": [{"tileid": f, "duration": d} for f, d in runs]}
+                  for tid, runs in sorted(animations.items())],
     }],
 }
 with open(os.path.join(ROOT, "map.json"), "w", encoding="utf-8") as fh:
@@ -1187,8 +1380,7 @@ for (x, y) in START:
     ov.rectangle([x * T + 4, y * T + 4, x * T + T - 5, y * T + T - 5], outline=(0, 255, 0, 255), width=3)
 if os.environ.get("PREVIEW_DEBUG_DIR"):
     dbgprev.convert("RGB").save(os.path.join(os.environ["PREVIEW_DEBUG_DIR"], "preview_colisoes.png"))
-# GIF animado da prévia (região da usina, reduzida)
-gif = [Image.alpha_composite(b_, f_).crop((0, 0, 47 * T, 20 * T)).resize((47 * T // 2, 20 * T // 2), Image.LANCZOS).convert("RGB")
-       for (b_, f_, _) in frames]
-gif[0].save(os.path.join(ROOT, "preview_animado.gif"), save_all=True, append_images=gif[1:], duration=FRAME_MS, loop=0)
+# GIF animado da prévia (mapa inteiro, reduzido, metade dos quadros)
+gif[0].save(os.path.join(ROOT, "preview_animado.gif"), save_all=True, append_images=gif[1:],
+            duration=FRAME_MS * 2, loop=0, optimize=True)
 print(f"tiles: {len(tiles)}  animados: {len(animations)}  tileset: {COLS * T}x{rows * T}")

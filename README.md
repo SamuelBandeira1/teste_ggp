@@ -39,15 +39,15 @@ Pontes rolantes e copas das árvores ficam **por cima** do personagem.
 
 ### Animações
 
-O mapa usa tiles animados do Tiled (8 quadros de 150 ms):
+O mapa usa tiles animados do Tiled, num ciclo de 16 segundos (128 quadros de 125 ms):
 
-- fogo do forno elétrico, da panela, do lingotamento e do forno de reaquecimento tremulando;
-- arcos elétricos entre os eletrodos e faíscas;
-- fumaça saindo das chaminés;
-- brilho correndo na barra quente, cilindros da laminação e carretel girando;
-- talha das pontes rolantes indo e voltando, com luz piscando;
-- giroflex das empilhadeiras, setas andando na passarela;
-- vapor das máquinas de café e cursor nos gráficos da sala S&OP.
+- **Recebimento (doca 3):** carreta chega de ré com luz de ré piscando, a empilhadeira tira os feixes um a um e leva para a pilha, e a carreta vazia vai embora.
+- **Expedição (doca 2):** em contratempo, outra carreta chega vazia, é carregada com vergalhão e sai.
+- **Rua:** caminhão carregado de vergalhão passa pela rua principal, e um carro sai pela portaria com a cancela abrindo.
+- **Aciaria:** a panela recebe o jato de aço do forno, anda pelos trilhos até a ponte rolante e volta. O fogo tremula, há arcos elétricos e faíscas.
+- **Laminação:** barras descem pelo leito de resfriamento esfriando do laranja ao cinza, os cilindros e o carretel giram e um brilho corre na barra quente.
+- **Pátio:** ponte rolante leva um feixe de vergalhão para lá e para cá.
+- Fumaça nas chaminés, giroflex, setas andando na passarela, vapor do café e cursor nos gráficos da sala S&OP.
 
 ### Áreas interativas
 
