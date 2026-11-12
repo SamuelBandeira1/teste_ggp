@@ -2,6 +2,15 @@
 
 Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar por aqui.
 
+## 0. Resumo (atualizado em 12/11)
+| Cliente | Pedido | Status |
+|---|---|---|
+| Humberto | Placa de mesa SOE/SNOI/SNOP, besouro, moldura, cantoneiras | **Confirmou que quer o orçamento de tudo.** Fazer o orçamento único (itens 1, 1b, 1c) |
+| Patrícia | 5 pias de água benta personalizadas | Falar com ela: modelos e nomes dos casais (item 1f) |
+| João Vasconcelos | "Dummy" + peças de aquário | Pegar a imagem no WhatsApp e entender o pedido (item 1e) |
+| Tia Karina | Peças geométricas azul e amarelo | Terminar e precificar com 2 rolos (item 1d) |
+| Confraternização 19/11 | 30 brindes | Decidir o modelo e imprimir até 17/11 (item 2) |
+
 ## 1. Placa de mesa do Humberto (setor SOE)
 - **Pedido:** o Humberto quer uma placa de mesa do setor. Ele já tem uma escrita "SOP" e quer algo na mesma linha com as siglas SNOI e SNOP.
 - **Objetivo nosso:** entregar algo mais bonito que a placa atual e divulgar a nossa marca. É vitrine, então vale caprichar.
@@ -38,6 +47,23 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
 - **A fazer quando o Samuel pedir:** achar o projeto, terminar, calcular o preço com os 2 rolos embutidos e, se ele quiser, imprimir uma peça de teste.
 - Só anotado. Não executar nada sem o Samuel pedir.
 
+## 1e. João Vasconcelos: "dummy" e peças de aquário
+- **Pedido 1:** um "dummy". A imagem de referência está no WhatsApp. Confirmar o que é exatamente (boneco, peça de teste, manequim?) quando abrir a imagem.
+- **Pedido 2:** peças de aquário (separado do dummy).
+- **Atenção no aquário:** se a peça fica dentro da água, usar PETG (PLA amolece e degrada com o tempo) e evitar cores ou aditivos duvidosos. Perguntar se há peixe, para não soltar nada tóxico.
+- **Falta:** as imagens (no WhatsApp), as medidas e a quantidade.
+- **Próximo passo:** quando o /backlog-whatsapp rodar, salvar as imagens em `dados/referencias/` e montar o orçamento.
+
+## 1f. Patrícia (cliente da pia de água benta): 5 unidades
+- **Pedido:** 5 pias de água benta personalizadas com os nomes dos casais.
+- **Falar com ela antes de qualquer coisa:**
+  1. Quais modelos ela quer (o mesmo da anterior ou outros?).
+  2. Os nomes de cada casal, com a grafia exata.
+  3. As cores.
+  4. O prazo (é para alguma data, casamento ou batizado?).
+- **Preço:** usar o valor da peça anterior como base e oferecer preço por quantidade para as 5.
+- **Próximo passo:** o Claude prepara a mensagem para o Samuel mandar para ela com essas perguntas.
+
 ## 2. Brindes para a confraternização de 19/11 (quinta-feira)
 - **Quantidade:** 30 brindes pequenos com a nossa marca.
 - **Prazo:** tudo impresso até 17/11, para sobrar margem para falha de impressão. Só temos uma impressora.
@@ -47,6 +73,11 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
   3. **Marcador de página ou ímã de geladeira** com a logo. É o mais barato e o mais rápido, mas é o que menos marca.
 - **Antes de decidir:** fatiar o chaveiro e o suporte, anotar gramas e tempo por peça, e calcular custo e horas de máquina para 30 unidades com a fórmula do `BRIEFING.md` ("Custo e preço").
 - **Junto com o brinde:** um cartãozinho ou etiqueta com @ do Instagram e WhatsApp, e a frase "a gente faz placas com NFC para o seu negócio".
+
+## 2b. Ideia: anunciar no Mercado Livre, Shopee e Elo7
+- Começar com 3 a 5 anúncios de produto personalizado: placa de mesa por profissão, placa NFC para pequeno negócio, kit de chaveiros com nome ou logo.
+- Antes de definir o preço, conferir a tarifa e o custo fixo no simulador do Mercado Livre (Clássico em torno de 10% a 14%).
+- Abrir o MEI se as vendas engrenarem.
 
 ## 3. Em aberto do plano da semana (`BRIEFING.md`)
 - Leads do Google Maps e backlog do WhatsApp: rodar no Claude Code local. O PC caiu e precisa reconectar.
