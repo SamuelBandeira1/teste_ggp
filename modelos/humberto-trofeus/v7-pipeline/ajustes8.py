@@ -26,6 +26,22 @@ def a1(p, b, f, cv):
     b2 = unary_union([b, gap.difference(chave).intersection(p.buffer(0.5))])
     return p2, b2.difference(p2), f
 
+def refinar(p, br, fio=0.45, curva=0.6, min_area=1.5):
+    """acabamento: tira fiapos (brancos e pretos mais finos que 2*fio mm), arredonda cantos e remove pontinhos"""
+    def limpa(g, a):
+        g = ok(g)
+        return ok(unary_union([q for q in (g.geoms if hasattr(g, 'geoms') else [g]) if q.area > a]))
+    C = ok(unary_union([p, br]))
+    C = ok(C.buffer(curva, quad_segs=24).buffer(-2*curva, quad_segs=24).buffer(curva, quad_segs=24))   # contorno externo liso
+    W = ok(br.intersection(C))
+    W = ok(W.buffer(-fio, quad_segs=24).buffer(fio, quad_segs=24))          # some fiapo branco
+    W = ok(W.buffer(fio, quad_segs=24).buffer(-fio, quad_segs=24))          # some fiapo preto dentro do branco
+    W = limpa(W.buffer(curva/2, quad_segs=24).buffer(-curva/2, quad_segs=24), min_area).intersection(C.buffer(-0.01))
+    P = ok(C.difference(W))
+    P = limpa(ok(P.buffer(-fio, quad_segs=24).buffer(fio, quad_segs=24)).union(P.intersection(C.difference(C.buffer(-fio*2.2)))), min_area)
+    W = ok(C.difference(P))
+    return P, W
+
 def fiel(p, r_fecho=1.5, faixa_base=4.0):
     """método aprovado: preto = traçado pelo limiar do branco; branco = tudo dentro do contorno que não é preto"""
     p = ok(p)
@@ -44,16 +60,28 @@ def a3(p, b, f, cv):
     if len(livro) == 4:
         p = ok(unary_union([p, box(livro[0] + 2.5, 0, livro[2], 1.6).buffer(0.8, quad_segs=16).intersection(box(-80, 0, 80, 3))]))
     p, br = fiel(p, r_fecho=3.0, faixa_base=0)
-    # linhas brancas que demarcam as partes do chapéu (medidas na grade da referência)
-    linhas = cv(unary_union([
-        T([(-95,227),(5,255),(103,231)], 4),        # aba / copa
-        T([(-57,212),(5,207),(64,213)], 4),         # aba (embaixo) / copa
-        T([(5,251),(5,186)], 4),                    # quina da frente da copa
-        T(bez((-55,184),(5,177),(63,186)), 4),      # copa / parte de trás da cabeça
-        T([(-88,224),(-88,196)], 3.5),              # cordão do pingente / copa
-    ]))
+    # linhas brancas que demarcam o chapéu, medidas com zoom na referência (em mm, já no sistema da peça)
+    linhas = unary_union([
+        T([(-19.3,79.0),(0.9,81.4),(22.5,78.6)], 1.4),     # topo da copa / aba
+        T([(-32.5,71.0),(-19.3,66.3)], 1.4),               # borda de baixo da aba (esquerda)
+        T([(23.0,68.6),(36.5,74.0)], 1.4),                 # borda de baixo da aba (direita)
+        T([(1.4,79.6),(1.4,61.2)], 1.4),                   # quina da frente da copa
+        T(bez((-18.8,59.8),(1.6,59.6),(22.7,59.4)), 1.4),  # base da copa
+    ])
     linhas = ok(linhas.intersection(p.buffer(-1.0)))
-    return ok(p.difference(linhas)), ok(unary_union([br, linhas])), f
+    P, W = refinar(ok(p.difference(linhas)), ok(unary_union([br, linhas])))
+    # embaixo (pontas do cabelo): some com os pedacinhos brancos irregulares entre as pontas e o corpo
+    from shapely.geometry import Point as _Pt
+    gs = list(W.geoms) if hasattr(W, 'geoms') else [W]
+    rosto = [g for g in gs if g.contains(_Pt(10, 12))]
+    zona = ok(unary_union([box(-6.5, -1, 8, 5.5), box(21, -1, 40, 14)]))
+    lixo = [ok(W.intersection(zona).difference(unary_union(rosto).buffer(0.3) if rosto else Polygon()))] + [g for g in gs if g.area < 8 and g.centroid.y < 9]
+    if lixo:
+        L = ok(unary_union(lixo)).buffer(0.05)
+        tudo = ok(unary_union([P, W]))
+        W = ok(W.difference(L)); P = ok(unary_union([P, L]).intersection(tudo))
+        P, W = refinar(P, W)
+    return P, W, f
 
 def a6(p, b, f, cv):
     b = b.buffer(-0.45).buffer(0.45)                    # tira o risco fino de brilho no topo do capacete
