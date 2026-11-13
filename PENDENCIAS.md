@@ -2,6 +2,26 @@
 
 Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar por aqui.
 
+## Reunião com o Humberto em 13/11 (transcrição analisada)
+**Ordem combinada:**
+1. **Troféus do Humberto.** Prazo 19/11. São dele, para a confraternização, e não substituem os brindes. Mostrar o modelo, ele fecha e segue.
+2. **Brindes da confraternização** (continuam valendo, separados dos troféus).
+3. **Pedidos de terceiros, intercalando** quando chegarem as cores (bege/"cor de pele", azul, amarelo): tia Karina, Gojo, João, Patrícia. "É importante a gente cumprir."
+4. **Besouro e moldura do Humberto** só depois dos terceiros. Avisar a ele quando liberar e ver o modelo juntos.
+
+**Feedback nos troféus (versão 1):**
+- O volume foi aprovado: "é assim mesmo, com um pouquinho de volume para não ser um negócio chapadão".
+- **Gravar "2026" na base** de todos, como registro do ano.
+- **Fazer em preto e branco.** As partes que não se encaixam (não são contínuas) precisam de um fundo branco para segurar. Preencher com branco os vazios dos troféus 1, 2, 3, 4 e 5; o 6 talvez não.
+- **Camaleão (7):** tem muitos pontos de apoio, então fica todo preto. Só o olho em branco, para não virar buraco. Não preencher a cauda, as patas nem o galho.
+- Onde precisar, pode ser uma borda branca em volta para não ficar estranho.
+- Ele disse "pode ser repetido mesmo" (confirmar: pode repetir o modelo de troféu para mais de uma pessoa?).
+- Próximo passo: versão 2 em duas cores e mostrar para ele.
+
+**Outros pontos:**
+- **Mateus:** possível pedido de troféus na empresa dele. Ele precisa falar com o diretor. Usar as perguntas que o Humberto mandou: para quando é, tem inspiração, qual a finalidade (melhor vendedor, melhores do ano). O diferencial é ser personalizado, não o troféu dourado genérico de loja.
+- **Rolos de filamento:** um chega hoje (13/11), o outro amanhã ou domingo.
+
 ## Situação em 13/11
 - **A impressora deu defeito em 12/11 e já foi consertada em 13/11.** Pode voltar a imprimir.
 - **Os brindes de 19/11 continuam com prazo apertado** (imprimir até 17/11). Começar por eles e pela tia Karina.
@@ -11,10 +31,10 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
 | Cliente | Pedido | Status |
 |---|---|---|
 | Humberto | Placa de mesa SOE/SNOI/SNOP, besouro, moldura, cantoneiras, **9 troféus** | **Confirmou que quer o orçamento de tudo.** Fazer o orçamento único (itens 1, 1b, 1c, 1g) |
-| Patrícia | 5 pias de água benta personalizadas | Falar com ela: modelos e nomes dos casais (item 1f) |
-| João Vasconcelos | "Dummy" + peças de aquário | Pegar a imagem no WhatsApp e entender o pedido (item 1e) |
+| Patrícia | 5 pias de água benta personalizadas | Pedido certo; esperando ela mandar os nomes dos casais do evento. **Cobrar de novo** para não esquecer (item 1f) |
+| João Vasconcelos | Boneco articulado ("dummy") + peças de aquário | Pegar a imagem no WhatsApp e entender o pedido (item 1e) |
 | ? (confirmar) | Quadro do Gojo (MakerWorld 1616289) | Esperar o filamento bege; preço estimado R$ 59–69 (item 1h) |
-| Tia Karina | Peças geométricas azul e amarelo | Terminar e precificar com 2 rolos (item 1d) |
+| Tia Karina | 20 marcadores de página geométricos, azul e amarelo | Terminar e precificar com 2 rolos (item 1d) |
 | Confraternização 19/11 | 30 brindes | Decidir o modelo e imprimir até 17/11 (item 2) |
 
 ## 1. Placa de mesa do Humberto (setor SOE)
@@ -88,14 +108,14 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
 - **Para fechar o custo real:** preço pago no kg de cada cor, modelo da impressora e valor do kWh na conta da Enel.
 
 ## 1d. Tia Karina (tia da Amanda): peças geométricas — terminar hoje (10/11)
-- **Pedido:** as peças geométricas dela. O projeto já existe em um dos projetos do Claude ou do Claude Code; procurar lá antes de começar do zero.
+- **Pedido:** **20 marcadores de página** geométricos (confirmado na reunião de 13/11). O projeto já existe em um dos projetos do Claude ou do Claude Code; procurar lá antes de começar do zero.
 - **Cores:** só azul e amarelo. Não temos essas cores, então é preciso comprar 2 rolos de filamento só para esse pedido.
 - **Preço:** tem que cobrir os 2 rolos inteiros, e não só os gramas usados, mais o custo normal (tag, energia, perda) e a margem. Ela pode pagar.
 - **A fazer quando o Samuel pedir:** achar o projeto, terminar, calcular o preço com os 2 rolos embutidos e, se ele quiser, imprimir uma peça de teste.
 - Só anotado. Não executar nada sem o Samuel pedir.
 
 ## 1e. João Vasconcelos: "dummy" e peças de aquário
-- **Pedido 1:** um "dummy". A imagem de referência está no WhatsApp. Confirmar o que é exatamente (boneco, peça de teste, manequim?) quando abrir a imagem.
+- **Pedido 1:** um "dummy": **bonequinho articulado** que fica na posição em que você coloca (confirmado na reunião de 13/11). A imagem está no WhatsApp. Procurar um modelo de boneco articulado ("articulated dummy", "poseable mannequin") no MakerWorld.
 - **Pedido 2:** peças de aquário (separado do dummy).
 - **Atenção no aquário:** se a peça fica dentro da água, usar PETG (PLA amolece e degrada com o tempo) e evitar cores ou aditivos duvidosos. Perguntar se há peixe, para não soltar nada tóxico.
 - **Falta:** as imagens (no WhatsApp), as medidas e a quantidade.
