@@ -16,7 +16,7 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
 - **Camaleão (7):** tem muitos pontos de apoio, então fica todo preto. Só o olho em branco, para não virar buraco. Não preencher a cauda, as patas nem o galho.
 - Onde precisar, pode ser uma borda branca em volta para não ficar estranho.
 - Ele disse "pode ser repetido mesmo" (confirmar: pode repetir o modelo de troféu para mais de uma pessoa?).
-- Próximo passo: versão 2 em duas cores e mostrar para ele.
+- **Feito em 13/11:** versão 3 em `modelos/humberto-trofeus/` (duas cores, "2026" na base, base padrão com encaixe e ícone impresso deitado, ideia do Humberto). Próximo passo: imprimir o teste (1 base + troféu 5) e mostrar para ele.
 
 **Outros pontos:**
 - **Mateus:** possível pedido de troféus na empresa dele. Ele precisa falar com o diretor. Usar as perguntas que o Humberto mandou: para quando é, tem inspiração, qual a finalidade (melhor vendedor, melhores do ano). O diferencial é ser personalizado, não o troféu dourado genérico de loja.
@@ -117,6 +117,12 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
 ## 1e. João Vasconcelos: "dummy" e peças de aquário
 - **Pedido 1:** um "dummy": **bonequinho articulado** que fica na posição em que você coloca (confirmado na reunião de 13/11). A imagem está no WhatsApp. Procurar um modelo de boneco articulado ("articulated dummy", "poseable mannequin") no MakerWorld.
 - **Pedido 2:** peças de aquário (separado do dummy).
+- **Referências que ele mandou (13/11):**
+  1. **Dummy 13:** boneco articulado que vem impresso numa placa tipo kit de montar (está escrito "DUMMY 13" na placa). É um modelo conhecido e gratuito; procurar "Dummy 13" no MakerWorld e conferir a licença. Ele mostrou em azul com articulações em laranja (duas cores).
+  2. **Caverna/toca esconderijo de aquário:** meia esfera vazada em padrão voronoi (rede de buracos irregulares), cinza.
+  3. **Cesto de aquário com presilha:** caixa vazada em grade, 2,5 × 2,5 cm de boca, 9 cm de altura, 4 cm de largura com a presilha, que prende na borda do vidro (vão de 10 mm) com um parafuso de aperto.
+  4. **Suporte com ventosa e espetos:** disco com espetos e uma ventosa no centro (prende planta ou alimento no vidro). Precisa comprar ventosas.
+- **Falta:** quantidade de cada, cores, e a espessura do vidro do aquário (para a presilha).
 - **Atenção no aquário:** se a peça fica dentro da água, usar PETG (PLA amolece e degrada com o tempo) e evitar cores ou aditivos duvidosos. Perguntar se há peixe, para não soltar nada tóxico.
 - **Falta:** as imagens (no WhatsApp), as medidas e a quantidade.
 - **Próximo passo:** quando o /backlog-whatsapp rodar, salvar as imagens em `dados/referencias/` e montar o orçamento.

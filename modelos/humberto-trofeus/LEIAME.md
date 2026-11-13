@@ -1,22 +1,32 @@
-# Troféus do Humberto (9 modelos), versão 1 de 13/11/2026
+# Troféus do Humberto: versão 3 (13/11/2026)
 
-Gerados a partir da imagem de referência que ele mandou no WhatsApp. Prévia: `preview.png`.
+Ícone impresso **deitado**, encaixado numa **base padrão** (a mesma para os 9). Preto e branco no AMS.
+Prévias: `preview.png` (montados) e `preview-pecas.png` (ícone deitado com o pino; base com o encaixe).
+
+## O que mudou desde a versão 1 (feedback da reunião de 13/11)
+- Duas cores: o **fundo e a borda brancos** seguram as partes soltas (troféus 1, 2, 3, 4, 5 e 8). Os detalhes brancos ficam embutidos.
+- **Camaleão (7):** todo preto, só o olho branco. **Capacete (6) e leitura (9):** pretos, sem fundo.
+- **"2026" em branco** embutido na frente da base.
+- **Base separada com encaixe padronizado** (ideia do Humberto): imprime as 9 bases iguais e os ícones deitados.
 
 ## Medidas
-- Altura total: 120 mm. Base: 25 mm (degrau de 62 mm de diâmetro embaixo e 56 mm em cima, chanfro de 1 mm na borda de baixo).
-- Ícone: 95 mm de altura, 14 mm de espessura no miolo, borda arredondada (raio de 3 mm). Os detalhes brancos da referência viram gravação de 2 mm nas duas faces.
-- Embaixo da base há um rebaixo de 26,5 mm × 1 mm para uma tag NFC adesiva de 25 mm (opcional: encostar o celular abre o nosso Instagram).
-- Peças soltas da imagem (raios do sol, fumaça do café, óculos, raio) foram ligadas ao corpo com pontes de 3 mm.
+- Montado: 120 mm de altura. Base 25 mm (62 mm de diâmetro embaixo, 56 mm em cima). Pé do ícone 50 × 14 × 5 mm. Ícone 90 mm.
+- Ícone: 14 mm de espessura. Frente com borda arredondada, costas retas (é o lado que vai na mesa).
+- **Encaixe:** pino de 20 × 8 × 8 mm embaixo do pé; furo na base com 0,2 mm de folga de cada lado. Se ficar justo demais, lixar o pino; se ficar folgado, uma gota de cola.
+- Embaixo da base: rebaixo de 26,5 × 1 mm para tag NFC adesiva de 25 mm (opcional).
 
-## Impressão (sugestão)
-- Imprimir em pé, como está no arquivo. PLA preto, camada de 0,2 mm, 3 paredes, 15% de preenchimento, sem suporte (testar o suporte em árvore só se o fatiador apontar balanço no capacete ou no camaleão).
-- Filamento estimado: 52 a 64 g por troféu, ~535 g os 9 (estimativa por geometria; o número certo vem do fatiador).
-- Imprimir primeiro 1 troféu de teste (sugestão: o 5, do café, que é o mais simples) antes de rodar os 9.
+## Como imprimir
+- **Arquivos `.3mf`:** abrir no Bambu Studio. Se perguntar "carregar como objeto único com várias partes?", responder **Sim**. Depois atribuir as cores: parte `preto` → filamento preto, parte `branco` → branco.
+- **Ícones:** já vêm deitados, costas na mesa. PLA, camada 0,2 mm, 3 paredes, 15% de preenchimento, **sem suporte**. Dá para pôr 2 ou 3 ícones por mesa.
+- **Base:** em pé, como vem no arquivo. As 9 cabem numa mesa só (são iguais: copiar 9 vezes).
+- **Testar primeiro:** 1 base + o ícone 5 (café). Conferir o encaixe antes de rodar o resto.
+- **Filamento estimado:** ~570 g de preto e ~130 g de branco para os 9 com as bases (estimativa pela geometria; o número certo vem do fatiador). A troca de cor no AMS gasta mais um pouco de purga.
+
+## Pontos fracos (ver com o Humberto)
+- O 9 (leitura com relógio) perdeu o rosto e o cabelo da referência; ficou uma silhueta.
+- O 3 (anime) e o 6 (capacete) têm detalhes pequenos.
+- A referência é um print de baixa resolução. Com a imagem original dá para refazer com contorno mais limpo.
 
 ## Arquivos
-- `trofeu-N-*.3mf`: abrir direto no Bambu Studio ou no Orca Slicer.
-- `gerar_trofeus.py`: gera os modelos de novo (ajustar medidas no topo do arquivo). Precisa da imagem de referência recortada em `../ref_crop.png`.
-
-## Pontos fracos da versão 1
-- O 9 (leitura com relógio) perdeu o detalhe do rosto e do cabelo; ficou uma silhueta.
-- O 3 (anime) e o 6 (capacete) têm detalhes pequenos que podem sumir na impressão.
+- `trofeu-N-*.3mf`: ícones (deitados). `base-padrao-2026.3mf`: base.
+- `gerar_v3_encaixe.py` (usa `gerar_v2_cores.py`): gera tudo de novo. Medidas no topo dos arquivos. Precisa da referência recortada em `../ref_crop.png`.
