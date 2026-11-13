@@ -2,6 +2,11 @@
 
 Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar por aqui.
 
+## Situação em 13/11
+- **A impressora deu defeito em 12/11.** O Samuel passou a noite tentando e não conseguiu imprimir nada. Antes de qualquer pedido, consertar a máquina.
+- **Os brindes de 19/11 estão em risco**, porque o prazo de impressão era 17/11. Se a máquina não voltar até 15/11, reduzir o brinde (menos peças ou uma peça mais rápida).
+- A tia Karina está atrasada (era para 10/11).
+
 ## 0. Resumo (atualizado em 12/11)
 | Cliente | Pedido | Status |
 |---|---|---|
