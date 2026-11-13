@@ -73,12 +73,21 @@ def a4(p, b, f, cv):
     return p2, unary_union([b.difference(zona), face_b]).difference(p2), f
 
 def a2(p, b, f, cv):
-    # fecha a ponta do escudo (cortada pela linha de apoio) e tira o branco de baixo
-    faixa = p.intersection(box(-30, 7.5, 30, 8.5)).bounds
-    xl, xr = faixa[0], faixa[2]
-    ponta = Polygon([(xl, 8.5), (0, -0.6), (xr, 8.5)])
-    p2 = unary_union([p.difference(box(-30, -5, 30, 8.5)), ponta])
-    return p2, b.difference(box(-12, -5, 12, 9)).difference(p2), f
+    # moldura do escudo em vetor (simétrica); mãos e dedos vêm da referência
+    lado = cub((106,150),(106,92),(62,44),(0,20))
+    ext = np.vstack([[(0,289),(98,247)], [(106,236)], lado, np.array(LineString(lado[::-1]).coords)*[-1,1], [(-106,236),(-98,247)]])
+    esc = arred(Polygon(ext).buffer(0), 4)
+    dentro = arred(esc.buffer(-18, quad_segs=Q, join_style='mitre'), 3)
+    curva = Polygon(np.vstack([[(-130,214)], [(-40,170)], cub((-40,170),(-24,193),(30,194),(52,170))[1:], [(130,215),(130,-60),(-130,-60)]]))
+    ESC, DEN, CUR = cv(esc), cv(dentro), cv(curva)
+    massa = DEN.intersection(CUR)
+    vaos = massa.buffer(-0.6).difference(p)
+    vaos = vaos.buffer(-0.25).buffer(0.25)
+    faixa_topo = CUR.exterior.buffer(4.0).intersection(box(-200, cv(box(0, 120, 1, 121)).bounds[1], 200, 300))
+    vaos = vaos.difference(faixa_topo).buffer(-0.2).buffer(0.2)      # linha das mangas fica lisa
+    vaos = unary_union([g for g in (vaos.geoms if hasattr(vaos, 'geoms') else [vaos]) if g.area > 1.0])
+    p2 = unary_union([ESC.difference(DEN), massa.difference(vaos)])
+    return p2, DEN.difference(p2), f
 
 def a9(p, b, f, cv):
     cabeca = E((-6, 148), 79, 90).intersection(box(-200, 148, 200, 400))
