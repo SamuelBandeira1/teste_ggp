@@ -101,8 +101,9 @@ def icone(i, out, mont):
     soltos = [c for c in comp if not c.intersects(pino2d) and c.area > 2]
     preto = para_blender(extrudar(p, ESP), 'preto')
     chanfrar(preto, ESP, CHANF)
-    pino = para_blender(trimesh.creation.box(extents=(2*PINO[0], PINO[1]+0.6, PINO[2]),
-                         transform=trimesh.transformations.translation_matrix((0, -(PINO[1]-0.6)/2, PINO[2]/2))), 'pino')
+    # pino padrão (igual em todos): 30 x 8 x 8 mm, topo rente à linha de apoio, sem aba aparecendo fora da peça
+    pino = para_blender(trimesh.creation.box(extents=(2*PINO[0], PINO[1], PINO[2]),
+                         transform=trimesh.transformations.translation_matrix((0, -PINO[1]/2, PINO[2]/2))), 'pino')
     mp = trimesh.util.concatenate([malha(preto), malha(pino)])     # o fatiador une as duas cascas (mesmo objeto)
     partes = {'preto': mp}
     brancos = [m for m in (extrudar(b, ESP_IN), extrudar(f, ESP_F)) if m is not None]
