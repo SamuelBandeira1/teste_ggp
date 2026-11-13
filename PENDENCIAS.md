@@ -13,6 +13,7 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
 | Humberto | Placa de mesa SOE/SNOI/SNOP, besouro, moldura, cantoneiras, **9 troféus** | **Confirmou que quer o orçamento de tudo.** Fazer o orçamento único (itens 1, 1b, 1c, 1g) |
 | Patrícia | 5 pias de água benta personalizadas | Falar com ela: modelos e nomes dos casais (item 1f) |
 | João Vasconcelos | "Dummy" + peças de aquário | Pegar a imagem no WhatsApp e entender o pedido (item 1e) |
+| ? (confirmar) | Quadro do Gojo (MakerWorld 1616289) | Esperar o filamento bege; preço estimado R$ 59–69 (item 1h) |
 | Tia Karina | Peças geométricas azul e amarelo | Terminar e precificar com 2 rolos (item 1d) |
 | Confraternização 19/11 | 30 brindes | Decidir o modelo e imprimir até 17/11 (item 2) |
 
@@ -66,6 +67,25 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
   4. O prazo (é para a confraternização de 19/11?).
 - **Produção:** é uma cor só, o que facilita. O ícone é chapado (formato de silhueta, extrudado), então dá para modelar a partir da imagem: vetorizar cada silhueta, extrudar uns 8 a 10 mm e encaixar na base. Para não quebrar, as partes finas (óculos, chave, raio, bandeira) precisam de pelo menos 2 mm de espessura. Procurar também modelos prontos parecidos no MakerWorld.
 - **O item 8 lembra Harry Potter** (óculos redondos + raio). Para presente particular não tem problema; não usar isso em produto para vender.
+
+## 1h. Quadro de anime (Satoru Gojo): esperando filamento bege
+- **Pedido:** o quadro em relevo do Gojo (Jujutsu Kaisen). Modelo no MakerWorld: makerworld.com/pt/models/1616289 (autor LUX3D). Print em `dados/referencias/quadro-gojo-makerworld.jpg`.
+- **Cliente:** confirmar com o Samuel quem pediu.
+- **Perfil do modelo:** camada de 0,16 mm, 2 paredes, 15% de preenchimento, **4,5 h**, multicor (AMS). PLA preto 71 g + bege 6 g + branco 19 g = **96 g**.
+- **Esperando:** o filamento bege chegar.
+- **Custo estimado em 13/11** (as premissas estão marcadas; trocar pelos valores reais):
+  | Item | Conta | R$ |
+  |---|---|---|
+  | Filamento | 96 g + 20% de purga e perda da troca de cor × R$ 100/kg *(premissa)* | 11,52 |
+  | Energia | 4,5 h × 0,12 kW *(premissa)* × R$ 1,00/kWh *(premissa)* | 0,54 |
+  | Desgaste da máquina | 4,5 h × R$ 1,00/h *(premissa)* | 4,50 |
+  | Embalagem | *(premissa)* | 3,00 |
+  | **Custo total** | | **19,56** |
+- **Preço sugerido:** **R$ 59 a R$ 69** na venda direta. É o custo × 3 a 3,5, e bate com cobrar uns R$ 10 por hora de máquina mais o material. A R$ 69 no Mercado Livre (Clássico ~12% + custo fixo ~R$ 6,50, a confirmar no simulador), sobram ~R$ 54.
+- **Atenção:**
+  1. Conferir a licença do modelo no MakerWorld: muitos não permitem vender a peça impressa.
+  2. É personagem de anime (marca registrada). Uma peça sob encomenda para alguém conhecido é aceitável, mas não anunciar no Mercado Livre nem em vitrine: dá denúncia e o anúncio cai.
+- **Para fechar o custo real:** preço pago no kg de cada cor, modelo da impressora e valor do kWh na conta da Enel.
 
 ## 1d. Tia Karina (tia da Amanda): peças geométricas — terminar hoje (10/11)
 - **Pedido:** as peças geométricas dela. O projeto já existe em um dos projetos do Claude ou do Claude Code; procurar lá antes de começar do zero.
