@@ -62,6 +62,7 @@ def gerar(n):
     T = [1, 0, 0, -1, 0, alt]                 # y para cima, linha de apoio em y = 0
     preto = affinity.affine_transform(geo['preto'], T).buffer(0)
     branco = affinity.affine_transform(geo['branco'], T).buffer(0)
+    inteiro = unary_union([preto, branco])            # medição do apoio e da altura: peça inteira
     encaixe = box(-PINO_X, 0, PINO_X, ENTRA)
     branco = branco.difference(encaixe).buffer(0)
     shells_p = prisma(preto, ESP_PRETO)
@@ -78,14 +79,14 @@ def gerar(n):
     escrever_3mf(arq, partes)
     # conferência por medição
     bp = mp.bounds
-    apoio = unary_union([preto, branco]).intersection(box(-PINO_X, 0, PINO_X, 0.6))
+    apoio = inteiro.intersection(box(-PINO_X, 0, PINO_X, 0.6))
     cob = apoio.intersection(box(-PINO_X, 0.25, PINO_X, 0.35)).area / (2 * PINO_X * 0.1)
     vol_p = sum(m.volume for m in shells_p) + pino.volume
     vol_b = sum(m.volume for m in shells_b)
     print('Troféu %d  %-26s pino x %.2f a %.2f | y %.2f a 0 | z 0 a %.2f | altura %.2f | preto %.1f cm3, branco %.1f cm3 '
           '| malhas fechadas: %s | apoio sobre o pino: %d%%'
           % (n, NOME[n], pino.bounds[0][0], pino.bounds[1][0], pino.bounds[0][1], pino.bounds[1][2],
-             bp[1][1], vol_p / 1000, vol_b / 1000, 'sim' if estanque else 'NÃO', round(cob * 100)))
+             inteiro.bounds[3], vol_p / 1000, vol_b / 1000, 'sim' if estanque else 'NÃO', round(cob * 100)))
     return arq
 
 
