@@ -44,7 +44,16 @@ def a3(p, b, f, cv):
     if len(livro) == 4:
         p = ok(unary_union([p, box(livro[0] + 2.5, 0, livro[2], 1.6).buffer(0.8, quad_segs=16).intersection(box(-80, 0, 80, 3))]))
     p, br = fiel(p, r_fecho=3.0, faixa_base=0)
-    return p, br, f
+    # linhas brancas que demarcam as partes do chapéu (medidas na grade da referência)
+    linhas = cv(unary_union([
+        T([(-95,227),(5,255),(103,231)], 4),        # aba / copa
+        T([(-57,212),(5,207),(64,213)], 4),         # aba (embaixo) / copa
+        T([(5,251),(5,186)], 4),                    # quina da frente da copa
+        T(bez((-55,184),(5,177),(63,186)), 4),      # copa / parte de trás da cabeça
+        T([(-88,224),(-88,196)], 3.5),              # cordão do pingente / copa
+    ]))
+    linhas = ok(linhas.intersection(p.buffer(-1.0)))
+    return ok(p.difference(linhas)), ok(unary_union([br, linhas])), f
 
 def a6(p, b, f, cv):
     b = b.buffer(-0.45).buffer(0.45)                    # tira o risco fino de brilho no topo do capacete
