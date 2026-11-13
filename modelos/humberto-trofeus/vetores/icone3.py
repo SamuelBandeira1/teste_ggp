@@ -73,36 +73,8 @@ camadas = [
     ('B', rosto), ('P', olho_e), ('P', olho_d),
 ]
 
-contorno, preto, branco = compor(camadas, Y_BASE, MIN_PRETO / 2 / S0, MIN_BRANCO / 2 / S0)
-y_topo = contorno.bounds[1]
-contorno_mm, s = para_mm(contorno, EIXO_X, y_topo, Y_BASE)
-preto_mm, _ = para_mm(preto, EIXO_X, y_topo, Y_BASE)
-branco_mm, _ = para_mm(branco, EIXO_X, y_topo, Y_BASE)
-
-
-def rel(g):
-    g = g.intersection(contorno)
-    return para_mm(g, EIXO_X, y_topo, Y_BASE)[0]
-
-
-relevo = [
-    ('menina', rel(halo)),
-    ('cabeca', rel(cabeca)),
-    ('livros', rel(unary_union([livro1, livro2]).difference(halo))),
-    ('borla', rel(unary_union([no, borla]))),
-]
-
-svg = os.path.join(AQUI, 'trofeu-3-vetor.svg')
-info = escrever_svg(svg, contorno_mm, preto_mm, branco_mm, relevo,
-                    'Troféu 3: menina de orelhas de gato, chapéu de formatura e livros')
-ok, linhas = verificar(contorno_mm, preto_mm, branco_mm)
-print('Troféu 3  escala %.4f mm/px  nós: preto %d, branco %d, relevo %d'
-      % (s, info['nos_preto'], info['nos_branco'], info['nos_relevo']))
-print('\n'.join(linhas))
-print('VERIFICAÇÃO:', 'APROVADA' if ok else 'REPROVADA')
-
-a = (svg, info, s, EIXO_X, y_topo)
-conferencia(*a, (636, 140, 890, 436), 5, os.path.join(AQUI, 'trofeu-3-conferencia.png'), contorno_mm, preto_mm)
-conferencia(*a, (655, 145, 885, 262), 6, os.path.join(AQUI, 'trofeu-3-zoom-topo.png'), contorno_mm, preto_mm, 'TOPO')
-conferencia(*a, (655, 240, 885, 350), 6, os.path.join(AQUI, 'trofeu-3-zoom-meio.png'), contorno_mm, preto_mm, 'MEIO')
-conferencia(*a, (636, 330, 890, 436), 6, os.path.join(AQUI, 'trofeu-3-zoom-base.png'), contorno_mm, preto_mm, 'BASE')
+relevo = [('menina', halo), ('cabeca', cabeca),
+          ('livros', unary_union([livro1, livro2]).difference(halo)), ('borla', unary_union([no, borla]))]
+finalizar(3, 'menina de orelhas de gato, chapéu de formatura e livros', camadas, EIXO_X, Y_BASE, relevo,
+          (636, 140, 890, 436), [('topo', (655, 145, 885, 262)), ('meio', (655, 240, 885, 350)),
+                                 ('base', (636, 330, 890, 436))], AQUI)

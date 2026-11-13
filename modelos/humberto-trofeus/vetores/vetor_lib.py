@@ -63,6 +63,17 @@ def traco(pts, largura):
     return LineString(curva(pts, fechada=False)).buffer(largura / 2, quad_segs=16)
 
 
+def traco_var(pts):
+    """pts: lista (x, y, largura). Faixa suave de largura variável (pontas redondas)."""
+    P = curva([(p[0], p[1]) for p in pts], fechada=False, passo=0.5)
+    A = np.array([(p[0], p[1]) for p in pts], float)
+    W = np.array([p[2] for p in pts], float)
+    # largura interpolada pelo comprimento ao longo das âncoras
+    idx = [int(np.argmin(((P - a) ** 2).sum(axis=1))) for a in A]
+    w = np.interp(np.arange(len(P)), idx, W)
+    return unary_union([Point(*p).buffer(r / 2, quad_segs=16) for p, r in zip(P, w)])
+
+
 def elipse(cx, cy, rx, ry):
     return affinity.scale(Point(cx, cy).buffer(1, quad_segs=32), rx, ry)
 
@@ -88,21 +99,28 @@ def polys(g):
 
 
 # ---------------------------------------------------------------- composição
-def compor(camadas, y_base, raio_preto, raio_branco):
+def compor(camadas, y_base, raio_preto, raio_branco, vazados_brancos=True):
     """camadas: lista (cor, geometria) em ordem de pintura ('P' preto, 'B' branco).
     Devolve (contorno, preto, branco) com larguras mínimas garantidas."""
     # o contorno externo vem só das peças cheias; linhas ('L') nunca o alteram
     contorno = unary_union([g for c, g in camadas if c in 'PB'])
     contorno = abrir(fechar(contorno, raio_preto), raio_preto)
+    # vazados internos pertencem ao BRANCO: o contorno externo é só o anel de fora
+    if vazados_brancos:
+        contorno = unary_union([Polygon(p.exterior) for p in polys(contorno)])
     preto = Polygon()
     for cor, g in camadas:
         preto = preto.union(g) if cor == 'P' else preto.difference(g)
+    # o que o alisamento do contorno acrescentou (cantos côncavos) entra como preto
+    extra = contorno.difference(unary_union([g for c, g in camadas if c in 'PB']))
+    preto = preto.union(unary_union([p for p in polys(extra) if p.area < 40]))   # vazados grandes ficam brancos
     preto = preto.intersection(contorno)
-    for _ in range(3):
-        preto = abrir(preto, raio_preto)
+    for _ in range(12):
+        preto = abrir(preto, raio_preto).intersection(contorno)
         branco = abrir(contorno.difference(preto), raio_branco)
         preto = contorno.difference(branco)
-    preto = abrir(preto, raio_preto).intersection(contorno)
+        if preto.difference(abrir(preto, raio_preto).buffer(0.05)).area < 0.3:
+            break          # preto e branco já respeitam os mínimos ao mesmo tempo
     corte = box(-1e5, -1e5, 1e5, y_base)          # borda de baixo reta
     contorno = contorno.intersection(corte)
     preto = preto.intersection(corte).buffer(0)
@@ -113,6 +131,13 @@ def compor(camadas, y_base, raio_preto, raio_branco):
     preto = contorno.difference(branco)
     preto = unary_union([p for p in polys(preto) if not p.buffer(-eps).is_empty])
     branco = contorno.difference(preto).buffer(0)
+    import shapely
+    contorno = shapely.set_precision(contorno.buffer(0), 0.002)
+    preto = shapely.set_precision(preto.buffer(0), 0.002).intersection(contorno)
+    preto = unary_union([p for p in polys(preto) if p.area > 0.5])
+    branco = unary_union([p for p in polys(contorno.difference(preto)) if p.area > 0.5])
+    preto = shapely.set_precision(contorno.difference(branco), 0.002)
+    branco = shapely.set_precision(contorno.difference(preto), 0.002)
     return contorno, preto, branco
 
 
@@ -301,7 +326,7 @@ def escrever_svg(arq, contorno, preto, branco, relevo, titulo):
     L = ['<?xml version="1.0" encoding="UTF-8"?>',
          '<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" '
          'width="%.3fmm" height="%.3fmm" viewBox="%.3f %.3f %.3f %.3f">' % (w, h, vx, vy, w, h),
-         '<title>%s</title>' % titulo,
+         '<title>%s</title>' % titulo.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
          '<desc>Unidade: mm. x=0 é o eixo da base; y=%.1f é a borda de baixo (encaixe). '
          'Camadas: BRANCO, PRETO, RELEVO.</desc>' % y1,
          '<g id="BRANCO" inkscape:groupmode="layer" inkscape:label="BRANCO" fill="#ffffff" fill-rule="evenodd">']
@@ -323,14 +348,15 @@ def escrever_svg(arq, contorno, preto, branco, relevo, titulo):
 
 
 # ---------------------------------------------------------------- verificação
-def verificar(contorno, preto, branco):
+def verificar(contorno, preto, branco, furos_ok=False):
     rel = []
     ok = True
 
     def finos(g, minimo, nome):
         nonlocal ok
         r = minimo / 2 * 0.97
-        resto = g.difference(abrir(g, r).buffer(0.02))
+        g = g.buffer(0)
+        resto = g.difference(abrir(g, r).buffer(0.02).buffer(0))
         ruins = [p for p in polys(resto) if p.area > 1.25 * r * r]   # quina viva isolada (até ~45°) não é fiapo
         if ruins:
             ok = False
@@ -344,7 +370,9 @@ def verificar(contorno, preto, branco):
     finos(preto, MIN_PRETO, 'PRETO')
     finos(branco, MIN_BRANCO, 'BRANCO')
     pc = polys(contorno)
-    if len(pc) == 1 and not pc[0].interiors:
+    if len(pc) == 1 and pc[0].interiors and furos_ok:
+        rel.append('  ok   contorno externo: 1 peça única, com %d vazados (deixados vazios de propósito)' % len(pc[0].interiors))
+    elif len(pc) == 1 and not pc[0].interiors:
         rel.append('  ok   contorno externo: 1 peça única, sem furos')
     else:
         ok = False
@@ -358,7 +386,7 @@ def verificar(contorno, preto, branco):
     else:
         rel.append('  ok   sem pontinhos soltos (menor região: %.1f mm²)'
                    % min(p.area for p in polys(preto) + polys(branco)))
-    sobra = contorno.difference(preto.union(branco)).area
+    sobra = abs(contorno.area - preto.area - branco.area)
     rel.append('  ok   PRETO + BRANCO = contorno (sobra %.4f mm²)' % sobra)
     x0, y0, x1, y1 = contorno.bounds
     base = contorno.intersection(box(-1e4, y1 - 0.01, 1e4, y1 + 1)).bounds
@@ -411,3 +439,44 @@ def conferencia(arq_svg, info, s, eixo_x, y_topo, janela, z, arq_png, contorno, 
         dd.text((g + i * (W + g), 10), t + ((' · ' + rotulo) if rotulo else ''), fill=(0, 0, 0))
     out.save(arq_png)
     return out
+
+
+# ---------------------------------------------------------------- fluxo completo de um ícone
+S0 = 0.349                 # mm por px da referência (aprox.; a escala final é acertada pela altura)
+LW = LINHA / S0            # linha de 1,4 mm em px
+R_PRETO = MIN_PRETO / 2 / S0
+R_BRANCO = MIN_BRANCO / 2 / S0
+
+
+def mm(v):
+    return v / S0
+
+
+def contorno_de(g, largura=None):
+    """Linha branca de largura constante em volta de uma peça que fica na frente de outra."""
+    return g.buffer(largura or LW, quad_segs=24)
+
+
+def finalizar(n, titulo, camadas, eixo_x, y_base, relevo, janela, zooms, pasta, altura=ALTURA_MM, vazados_brancos=True):
+    import os
+    contorno, preto, branco = compor(camadas, y_base, R_PRETO, R_BRANCO, vazados_brancos)
+    y_topo = contorno.bounds[1]
+    s = altura / (y_base - y_topo)
+    T = [s, 0, 0, s, -eixo_x * s, -y_topo * s]
+    tr = lambda g: affinity.affine_transform(g, T)
+    c_mm, p_mm, b_mm = tr(contorno), tr(preto), tr(branco)
+    rel = [(nome, tr(g.intersection(contorno))) for nome, g in relevo]
+    svg = os.path.join(pasta, 'trofeu-%d-vetor.svg' % n)
+    info = escrever_svg(svg, c_mm, p_mm, b_mm, rel, 'Troféu %d: %s' % (n, titulo))
+    ok, linhas = verificar(c_mm, p_mm, b_mm, furos_ok=not vazados_brancos)
+    print('Troféu %d  escala %.4f mm/px  trechos: preto %d, branco %d, relevo %d'
+          % (n, s, info['nos_preto'], info['nos_branco'], info['nos_relevo']))
+    print('\n'.join(linhas))
+    print('VERIFICAÇÃO:', 'APROVADA' if ok else 'REPROVADA')
+    a = (svg, info, s, eixo_x, y_topo)
+    conferencia(*a, janela, 5, os.path.join(pasta, 'trofeu-%d-conferencia.png' % n), c_mm, p_mm)
+    for nome, jz in zooms:
+        conferencia(*a, jz, 6, os.path.join(pasta, 'trofeu-%d-zoom-%s.png' % (n, nome)), c_mm, p_mm, nome.upper())
+    import pickle
+    pickle.dump(dict(contorno=c_mm, preto=p_mm, branco=b_mm, ok=ok), open(os.path.join(pasta, '.geo-%d.pkl' % n), 'wb'))
+    return c_mm, p_mm, b_mm
