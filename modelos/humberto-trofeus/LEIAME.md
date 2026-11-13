@@ -1,4 +1,4 @@
-# Troféus do Humberto: versão 4 (13/11/2026)
+# Troféus do Humberto: versão 5 (13/11/2026)
 
 Ícone impresso **deitado**, encaixado numa **base padrão** (a mesma para os 9). Preto e branco no AMS.
 Prévias: `preview.png` (montados) e `preview-pecas.png` (ícone deitado com o pino; base com o encaixe).
@@ -22,6 +22,13 @@ Prévias: `preview.png` (montados) e `preview-pecas.png` (ícone deitado com o p
 - **Testar primeiro:** 1 base + o ícone 5 (café). Conferir o encaixe antes de rodar o resto.
 - **Filamento estimado:** ~570 g de preto e ~130 g de branco para os 9 com as bases (estimativa pela geometria; o número certo vem do fatiador). A troca de cor no AMS gasta mais um pouco de purga.
 
+## Versão 5 (acabamento)
+- Contornos convertidos em curvas suaves (antes eram tirados dos pixels, com cantos tortos) e malha mais fina (0,25 mm).
+- Escudo com contorno simétrico; riscos de brilho da referência removidos.
+- **Leitor (9) redesenhado do zero em vetor**, simétrico: cabeça redonda, franja com três pontas em curva, rosto branco com olhos fechados espiando por cima do livro, livro aberto com lombada, borda das folhas e linhas de texto, relógio com ponteiros arredondados.
+- Partes pretas cercadas de branco (ponteiros do relógio, olhos) ficam presas no branco, sem pontes extras.
+- Sem furinho entre o ícone e o pé.
+
 ## Versão 4
 - Refeito a partir da imagem de referência em alta resolução (contornos mais limpos).
 - **Camaleão vazado** como na foto (só o olho branco).
@@ -32,4 +39,4 @@ Prévias: `preview.png` (montados) e `preview-pecas.png` (ícone deitado com o p
 
 ## Arquivos
 - `trofeu-N-*.3mf`: ícones (deitados). `base-padrao-2026.3mf`: base.
-- `gerar_v3_encaixe.py` (usa `gerar_v2_cores.py`): gera tudo de novo. Medidas no topo dos arquivos. Precisa da imagem de referência em alta, em tons de cinza, como `ref_hd.png` ao lado do script.
+- `gerar_v5.py` (usa `gerar_v3_encaixe.py` e `gerar_v2_cores.py`): gera tudo de novo. Medidas no topo dos arquivos. Precisa da imagem de referência em alta, em tons de cinza, como `ref_hd.png` ao lado do script.
