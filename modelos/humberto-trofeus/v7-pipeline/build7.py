@@ -7,6 +7,8 @@ NOME = {1:'engrenagem-codigo',2:'escudo-aperto-de-mao',3:'formatura-anime',4:'so
         5:'cafe-oculos',6:'capacete-bandeira',7:'camaleao',8:'haltere-folha-oculos',9:'leitura-relogio'}
 ESP, CHANF, ESP_IN, ESP_F = 14.0, 2.8, 13.0, 6.0
 FUNDO = {1,2,3,4,5,8}
+FECHO = {1: 2.2, 2: 3.0, 3: 3.0}   # raio que define o que é 'vazado interno' (preenchido de branco)
+PREENCHER = set(int(x) for x in os.environ.get('PREENCHER', '').split(',') if x)
 PINO = (15.0, 8.0, 8.0)
 CORTE = 0.6
 
@@ -35,15 +37,28 @@ def geometria(i):
     fech = p.buffer(1.2, quad_segs=16).buffer(-1.2, quad_segs=16)
     cheio = unary_union([Polygon(g.exterior) for g in polys(fech)])
     b = unary_union([b, cheio.difference(p)]).difference(p)
+    # limpeza: arredonda dentinhos e tira pontinhos do traçado
+    p = p.buffer(-0.35, quad_segs=16).buffer(0.7, quad_segs=16).buffer(-0.35, quad_segs=16)
+    b = b.buffer(-0.25, quad_segs=16).buffer(0.25, quad_segs=16)
+    b = unary_union([g for g in polys(b) if g.area > 1.0])
+    ok = lambda g: shapely.set_precision(shapely.make_valid(g).buffer(0), 0.002)
+    p, b = ok(p), ok(b)
+    b = ok(b.difference(p))
     f = Polygon()
-    if i in FUNDO:   # fundo branco recuado só dentro do contorno (sem borda por fora)
-        casco = unary_union([p, b]).buffer(6, quad_segs=16).buffer(-6, quad_segs=16)
-        f = casco.difference(p).difference(b).intersection(box(-200, 2.5, 200, 300))
+    if i in FUNDO:
+        rf = FECHO.get(i, 6.0)
+        casco = unary_union([p, b]).buffer(rf, quad_segs=16).buffer(-rf, quad_segs=16)
+        vaz = casco.difference(p).difference(b).intersection(box(-200, 2.5, 200, 300))
+        if i in PREENCHER:      # vazados viram branco cheio, no nível da frente
+            b = unary_union([b, vaz])
+        else:
+            f = vaz
         if i == 2: f = f.difference(box(-14, -5, 14, 10))
+    b, f = ok(b), ok(f)
     clip = box(-200, CORTE, 200, 300)
     sh = lambda g: __import__('shapely').affinity.translate(g.intersection(clip), 0, -CORTE)
     p, b, f = sh(p), sh(b), sh(f)
-    b = b.difference(p); f = f.difference(p).difference(b)
+    b = ok(b.difference(p)); f = ok(ok(f.difference(p)).difference(b))
     return p, b, f
 
 def extrudar(g, h):
