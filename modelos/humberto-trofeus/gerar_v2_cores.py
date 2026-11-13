@@ -5,11 +5,17 @@ from scipy import ndimage as ndi
 from skimage import measure, morphology, draw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ref = np.asarray(Image.open(os.path.join(HERE, '../ref_crop.png')).convert('L')).astype(float)
-BOX = {1:(70,90,232,262),2:(240,95,390,262),3:(400,95,556,264),4:(575,88,720,266),5:(740,95,875,262),
-       6:(90,378,242,540),7:(265,380,425,542),8:(462,380,632,540),9:(668,372,842,542)}
+ref = np.asarray(Image.open(os.path.join(HERE, 'ref_hd.png')).convert('L')).astype(float)
+BOX = {1:(98,141,372,412),2:(378,149,622,412),3:(633,149,887,415),4:(910,138,1148,418),5:(1172,149,1396,412),
+       6:(122,594,388,849),7:(418,598,680,853),8:(732,598,1008,849),9:(1058,585,1360,853)}
 NOME = {1:'engrenagem-codigo',2:'escudo-aperto-de-mao',3:'formatura-anime',4:'sol-calculadora-grafico',
         5:'cafe-oculos',6:'capacete-bandeira',7:'camaleao',8:'haltere-folha-oculos',9:'leitura-relogio'}
+# detalhes desenhados à mão (a referência só mostra por sombra): linhas brancas em px do recorte
+DETALHES = {9: [([(32,166),(90,172),(148,187)],6), ([(152,187),(200,172),(228,162)],6),
+                ([(150,192),(150,258)],5),
+                ([(52,198),(95,202),(138,212)],4), ([(52,216),(95,220),(138,230)],4),
+                ([(162,212),(200,202),(222,196)],4), ([(162,230),(200,220),(222,214)],4),
+                ([(88,152),(100,124),(114,146),(128,118),(142,144),(156,120),(170,150)],5)]}
 # como cada troféu usa o branco
 FUNDO = {1,2,3,4,5,8}        # fundo + borda brancos segurando as partes soltas
 SO_OLHO = {7}                # camaleão: todo preto, só o olho branco
@@ -40,6 +46,12 @@ def masks(i):
     n_z, n_x = int(round(g.shape[0]*px/F2)), int(round(g.shape[1]*px/F2))
     gi = np.asarray(Image.fromarray(g.astype(np.uint8)).resize((n_x,n_z), Image.BICUBIC)).astype(float)
     gi = ndi.gaussian_filter(gi, 0.12*px/F2)
+    if i in DETALHES:
+        k = n_x / g.shape[1]
+        im = Image.fromarray(np.clip(gi,0,255).astype(np.uint8)); dr = ImageDraw.Draw(im)
+        for pts, w in DETALHES[i]:
+            dr.line([((x - cols.min())*k, (y - top)*k) for x, y in pts], fill=255, width=int(w*k), joint='curve')
+        gi = np.asarray(im).astype(float)
     m = morphology.remove_small_objects(gi < 110, int(4/F2**2))
     filled = ndi.binary_fill_holes(m)
     holes = morphology.remove_small_objects(filled & ~m, int(1.0/F2**2))

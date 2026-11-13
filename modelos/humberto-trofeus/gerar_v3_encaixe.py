@@ -51,7 +51,7 @@ def icone(i, outdir, montado_dir):
         inlay, fundo, recesso = holes, W & ~B & ~holes, np.zeros_like(holes)
     else:
         inlay = b2.olho(holes) if i in b2.SO_OLHO else holes
-        recesso = holes & ~inlay
+        recesso = np.zeros_like(holes)          # camaleão: o resto fica vazado, como na foto
         B, pontes = b2.ligar(B, ground)
         fundo = np.zeros_like(B)
     sdist = b2.sdist

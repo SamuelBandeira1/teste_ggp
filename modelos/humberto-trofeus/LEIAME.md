@@ -1,4 +1,4 @@
-# Troféus do Humberto: versão 3 (13/11/2026)
+# Troféus do Humberto: versão 4 (13/11/2026)
 
 Ícone impresso **deitado**, encaixado numa **base padrão** (a mesma para os 9). Preto e branco no AMS.
 Prévias: `preview.png` (montados) e `preview-pecas.png` (ícone deitado com o pino; base com o encaixe).
@@ -22,11 +22,14 @@ Prévias: `preview.png` (montados) e `preview-pecas.png` (ícone deitado com o p
 - **Testar primeiro:** 1 base + o ícone 5 (café). Conferir o encaixe antes de rodar o resto.
 - **Filamento estimado:** ~570 g de preto e ~130 g de branco para os 9 com as bases (estimativa pela geometria; o número certo vem do fatiador). A troca de cor no AMS gasta mais um pouco de purga.
 
+## Versão 4
+- Refeito a partir da imagem de referência em alta resolução (contornos mais limpos).
+- **Camaleão vazado** como na foto (só o olho branco).
+- **Livro (9):** linhas brancas desenhadas à mão para a borda das páginas, a lombada, as linhas do texto e a franja do cabelo (na referência isso só aparece por sombra).
+
 ## Pontos fracos (ver com o Humberto)
-- O 9 (leitura com relógio) perdeu o rosto e o cabelo da referência; ficou uma silhueta.
 - O 3 (anime) e o 6 (capacete) têm detalhes pequenos.
-- A referência é um print de baixa resolução. Com a imagem original dá para refazer com contorno mais limpo.
 
 ## Arquivos
 - `trofeu-N-*.3mf`: ícones (deitados). `base-padrao-2026.3mf`: base.
-- `gerar_v3_encaixe.py` (usa `gerar_v2_cores.py`): gera tudo de novo. Medidas no topo dos arquivos. Precisa da referência recortada em `../ref_crop.png`.
+- `gerar_v3_encaixe.py` (usa `gerar_v2_cores.py`): gera tudo de novo. Medidas no topo dos arquivos. Precisa da imagem de referência em alta, em tons de cinza, como `ref_hd.png` ao lado do script.
