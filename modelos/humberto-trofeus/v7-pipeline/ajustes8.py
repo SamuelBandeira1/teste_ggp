@@ -6,6 +6,8 @@ from shapely import affinity
 import desenho6 as d6
 from desenho6 import C, E, RR, T, arred, bez, cub, catmull, esp, Q
 S = 0.352
+import shapely as _shp
+def ok(g): return _shp.set_precision(_shp.make_valid(g).buffer(0), 0.002)
 TOPO = d6.TOPO
 def conv(i, apoio):
     """px da grade (u, v) -> mm da peça"""
@@ -73,21 +75,40 @@ def a4(p, b, f, cv):
     return p2, unary_union([b.difference(zona), face_b]).difference(p2), f
 
 def a2(p, b, f, cv):
-    # moldura do escudo em vetor (simétrica); mãos e dedos vêm da referência
+    # moldura em vetor; mãos: massa preta limpa, separadas pelo contorno branco medido na referência,
+    # cada mão presa na sua manga, um único dedo ligando as duas, dedos afastados da parede
     lado = cub((106,150),(106,92),(62,44),(0,20))
     ext = np.vstack([[(0,289),(98,247)], [(106,236)], lado, np.array(LineString(lado[::-1]).coords)*[-1,1], [(-106,236),(-98,247)]])
     esc = arred(Polygon(ext).buffer(0), 4)
     dentro = arred(esc.buffer(-18, quad_segs=Q, join_style='mitre'), 3)
     curva = Polygon(np.vstack([[(-130,214)], [(-40,170)], cub((-40,170),(-24,193),(30,194),(52,170))[1:], [(130,215),(130,-60),(-130,-60)]]))
-    ESC, DEN, CUR = cv(esc), cv(dentro), cv(curva)
+    ESC, DEN, CUR = ok(cv(esc)), ok(cv(dentro)), ok(cv(curva))
+    p = ok(p)
     massa = DEN.intersection(CUR)
-    vaos = massa.buffer(-0.6).difference(p)
-    vaos = vaos.buffer(-0.25).buffer(0.25)
-    faixa_topo = CUR.exterior.buffer(4.0).intersection(box(-200, cv(box(0, 120, 1, 121)).bounds[1], 200, 300))
-    vaos = vaos.difference(faixa_topo).buffer(-0.2).buffer(0.2)      # linha das mangas fica lisa
+    # contorno branco que separa as mãos (polegar + indicador da mão de cima), medido na grade
+    sep = cv(T(catmull([(-47,171),(-49,150),(-45,133),(-33,125),(-17,126),(-4,135),(8,146),(22,146),(40,131),(56,114),(68,100),(72,92)], n=20), 7.0))
+    # vãos dos dedos e dos nós: brancos da referência, só na metade de baixo
+    baixo = cv(box(-120, 20, 120, 128))
+    vaos = massa.buffer(-0.6).difference(p).intersection(baixo).buffer(-0.25).buffer(0.25)
     vaos = unary_union([g for g in (vaos.geoms if hasattr(vaos, 'geoms') else [vaos]) if g.area > 1.0])
-    p2 = unary_union([ESC.difference(DEN), massa.difference(vaos)])
-    return p2, DEN.difference(p2), f
+    parede = DEN.difference(DEN.buffer(-2.6, join_style='mitre')).intersection(baixo)
+    maos = ok(ok(ok(massa.difference(sep)).difference(vaos)).difference(parede))
+    comps = sorted([g for g in (maos.geoms if hasattr(maos, 'geoms') else [maos]) if g.area > 3], key=lambda g: -g.area)
+    maos = unary_union(comps)
+    # cada parte tem que tocar a moldura (pelas mangas) ou ganhar um único dedo de ligação
+    moldura = ESC.difference(DEN)
+    from shapely.ops import nearest_points
+    presas = [g for g in comps if g.buffer(0.05).intersects(moldura)]
+    soltas = [g for g in comps if g not in presas]
+    for g in soltas:
+        alvo = unary_union(presas)
+        a_, b_ = nearest_points(g, alvo)
+        maos = unary_union([maos, LineString([a_, b_]).buffer(1.4, cap_style='round')])
+        presas.append(g)
+    ponte = sep.intersection(cv(C((52, 120), 5.5)))      # um único dedo ligando as duas mãos
+    maos = unary_union([maos, ponte])
+    p2 = ok(unary_union([moldura, maos]))
+    return p2, ok(DEN.difference(p2)), f
 
 def a9(p, b, f, cv):
     cabeca = E((-6, 148), 79, 90).intersection(box(-200, 148, 200, 400))

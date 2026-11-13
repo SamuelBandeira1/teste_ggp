@@ -48,7 +48,7 @@ def geometria(i):
     if i in FUNDO:
         rf = FECHO.get(i, 6.0)
         casco = unary_union([p, b]).buffer(rf, quad_segs=16).buffer(-rf, quad_segs=16)
-        vaz = casco.difference(p).difference(b).intersection(box(-200, 2.5, 200, 300))
+        vaz = ok(ok(ok(casco).difference(p)).difference(b)).intersection(box(-200, 2.5, 200, 300))
         if i in PREENCHER:      # vazados viram branco cheio, no nível da frente
             b = unary_union([b, vaz])
         else:
@@ -57,7 +57,7 @@ def geometria(i):
     b, f = ok(b), ok(f)
     clip = box(-200, CORTE, 200, 300)
     sh = lambda g: __import__('shapely').affinity.translate(g.intersection(clip), 0, -CORTE)
-    p, b, f = sh(p), sh(b), sh(f)
+    p, b, f = ok(sh(p)), ok(sh(b)), ok(sh(f))
     b = ok(b.difference(p)); f = ok(ok(f.difference(p)).difference(b))
     return p, b, f
 
