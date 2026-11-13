@@ -1,4 +1,4 @@
-# Troféus do Humberto: versão 5 (13/11/2026)
+# Troféus do Humberto: versão 7 (13/11/2026)
 
 Ícone impresso **deitado**, encaixado numa **base padrão** (a mesma para os 9). Preto e branco no AMS.
 Prévias: `preview.png` (montados) e `preview-pecas.png` (ícone deitado com o pino; base com o encaixe).
@@ -21,6 +21,14 @@ Prévias: `preview.png` (montados) e `preview-pecas.png` (ícone deitado com o p
 - **Base:** em pé, como vem no arquivo. As 9 cabem numa mesa só (são iguais: copiar 9 vezes).
 - **Testar primeiro:** 1 base + o ícone 5 (café). Conferir o encaixe antes de rodar o resto.
 - **Filamento estimado:** ~570 g de preto e ~130 g de branco para os 9 com as bases (estimativa pela geometria; o número certo vem do fatiador). A troca de cor no AMS gasta mais um pouco de purga.
+
+## Versão 7 (ferramentas profissionais)
+- Contornos tirados da referência com o **VTracer** (vetorização em curvas), centrados no centro da base medido na referência.
+- Volume feito no **Blender** (rodando na nuvem): extrusão exata, chanfro arredondado de 1,8 mm na frente, costas retas para a mesa.
+- Peça assenta **direto na base** (sem pé). Pino de 30 × 8 × 8 mm escondido no encaixe; base cilíndrica de 66 mm com borda arredondada, "2026" em branco e rebaixo para NFC.
+- O pino é uma casca separada dentro do mesmo objeto: o fatiador une as duas. Se o Bambu Studio avisar de "malha com erros", aceitar o reparo automático.
+- Leitor (9) segue o desenho vetorial da v6.
+- Scripts em `v7-pipeline/` (camadas.py → build7.py → render7.py).
 
 ## Versão 5 (acabamento)
 - Contornos convertidos em curvas suaves (antes eram tirados dos pixels, com cantos tortos) e malha mais fina (0,25 mm).
