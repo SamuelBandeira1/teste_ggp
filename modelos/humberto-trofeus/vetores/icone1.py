@@ -39,6 +39,8 @@ base_br = abrir(Polygon([(141, 373.5), (240, 373.5), (240, 384.5), (129, 384.5)]
 pe_e = Polygon([(186, 388), (212, 388), (197, 430), (171, 430)])
 pe_d = Polygon([(280, 380), (301, 380), (324, 430), (297, 430)])
 
+suporte = Polygon([(192, 388), (294, 380), (324, 430), (170, 430)])   # pé único e reto sobre a base
+
 # chave inglesa (peça paramétrica ao longo do eixo A→B)
 A, B = np.array([233.0, 406.0]), np.array([322.0, 328.0])
 u = (B - A) / np.linalg.norm(B - A)
@@ -55,7 +57,7 @@ ch_pr = unary_union([ch_br.buffer(T, quad_segs=24), Point(*A).buffer(RW + T, qua
 
 camadas = [
     ('P', eng), ('B', furo),
-    ('P', pe_e), ('P', pe_d), ('P', box(174, 411, 322, 430)), ('P', Polygon([(190, 390), (296, 382), (322, 430), (172, 430)])),   # rodapé: assento contínuo sobre a base
+    ('P', suporte),
     ('L', contorno_de(unary_union([monitor, base_nb]))),
     ('P', base_nb), ('B', base_br),
     ('P', monitor), ('B', moldura), ('P', tela),

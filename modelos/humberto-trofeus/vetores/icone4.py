@@ -21,7 +21,7 @@ def raio(ang, r1=62, r2=95):
     return traco([p(r1) + ('c',), p(r2) + ('c',)], RAIO_W)
 
 
-raios = unary_union([raio(a) for a in (-88, -58, -22, 127, 158, 195, 232)] + [raio(90, 62, 74)])
+raios = unary_union([raio(a) for a in (-88, -58, -22, 127, 158, 195, 232)])
 E_OLHO = mm(2.4)
 olho_e = traco([(994, 242, 'c'), (999, 234.5), (1005.5, 232), (1012, 234.5), (1017, 242, 'c')], E_OLHO)
 olho_d = traco([(1040.5, 242, 'c'), (1045.5, 234.5), (1052, 232), (1058.5, 234.5), (1063.5, 242, 'c')], E_OLHO)
@@ -53,7 +53,8 @@ teclas = unary_union([ret(u - 6.5, v - 5.5, u + 6.5, v + 5.5, 2.5) for v in (4.5
 camadas = [
     ('P', raios), ('P', disco), ('B', rosto), ('P', olho_e), ('P', olho_d), ('P', sorriso),
     ('P', barras), ('P', rodape),
-    ('L', contorno_de(seta)), ('P', seta),
+    ('P', seta), ('P', fechar(unary_union([disco.difference(rosto), seta]), 5).difference(rosto)),
+    ('P', fechar(unary_union([box(1088, 319, 1117, 440), seta]), 3.5)),
     ('L', contorno_de(calc)), ('P', calc), ('B', face), ('P', visor), ('P', teclas),
 ]
 relevo = [('seta', seta), ('calculadora', calc), ('sol', disco)]

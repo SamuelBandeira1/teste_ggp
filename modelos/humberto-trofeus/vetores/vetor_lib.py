@@ -14,6 +14,7 @@ from PIL import Image, ImageDraw
 
 REF = __file__.rsplit('/', 2)[0] + '/referencia/trofeus-referencia-hd.png'
 ALTURA_MM = 95.0
+S0 = 0.349                 # mm por px da referência (aprox.)
 MIN_PRETO = 2.0      # mm
 MIN_BRANCO = 1.2     # mm
 LINHA = 1.4          # mm (divisões por sombra)
@@ -131,6 +132,10 @@ def compor(camadas, y_base, raio_preto, raio_branco, vazados_brancos=True):
     preto = contorno.difference(branco)
     preto = unary_union([p for p in polys(preto) if not p.buffer(-eps).is_empty])
     branco = contorno.difference(preto).buffer(0)
+    # restos de linha (pontinhos brancos menores que 4 mm²) voltam para o preto
+    lim = 4.0 / (S0 * S0)
+    branco = unary_union([p for p in polys(contorno.difference(preto)) if p.area > lim])
+    preto = contorno.difference(branco)
     import shapely
     contorno = shapely.set_precision(contorno.buffer(0), 0.002)
     preto = shapely.set_precision(preto.buffer(0), 0.002).intersection(contorno)
@@ -232,77 +237,82 @@ def _tang(pts, i, sentido, alcance):
     return d / L if L else np.array([1.0, 0.0])
 
 
-def anel_para_path(coords, err=0.03, ang_quina=22.0, fechado=True):
-    """Converte um anel (polilinha densa) em comandos SVG com poucas Béziers."""
+def anel_para_path(coords, err=0.012, ang_quina=20.0, fechado=True, reta_min=0.9):
+    """Converte um anel (polilinha densa) em comandos SVG.
+    Arestas longas viram retas exatas (L); os trechos curvos entre elas viram poucas Béziers,
+    com a tangente herdada da reta vizinha quando a emenda é suave."""
     P = np.asarray(coords, float)
-    if fechado and np.allclose(P[0], P[-1]):
+    if np.allclose(P[0], P[-1]):
         P = P[:-1]
-    # remove pontos duplicados
     keep = [0]
     for i in range(1, len(P)):
-        if np.linalg.norm(P[i] - P[keep[-1]]) > 1e-4:
+        if np.linalg.norm(P[i] - P[keep[-1]]) > 2e-3:
             keep.append(i)
     P = P[keep]
+    if np.linalg.norm(P[0] - P[-1]) < 2e-3:
+        P = P[:-1]
     n = len(P)
-    quinas = []
-    rng = range(n) if fechado else range(1, n - 1)
-    for i in rng:
-        a = P[i] - P[(i - 1) % n]
-        b = P[(i + 1) % n] - P[i]
-        ang = abs(math.degrees(math.atan2(a[0] * b[1] - a[1] * b[0], a @ b)))
-        if ang > ang_quina:
-            quinas.append(i)
-    if fechado:
-        if not quinas:
-            quinas = [0]
-        P = np.roll(P, -quinas[0], axis=0)
-        quinas = [q - quinas[0] for q in quinas] + [n]
-        P = np.vstack([P, P[:1]])
-        suave_total = len(quinas) == 2 and ang_quina and True
-    else:
-        quinas = [0] + quinas + [n - 1]
-    segs = []
-    for a, b in zip(quinas[:-1], quinas[1:]):
-        pts = P[a:b + 1]
-        if len(pts) < 2:
+    E = np.roll(P, -1, axis=0) - P                    # aresta i: P[i] -> P[i+1]
+    Ln = np.linalg.norm(E, axis=1)
+    U = E / Ln[:, None]
+    longa = Ln > reta_min
+    quebra = np.zeros(n, bool)
+    for i in range(n):
+        a, b = U[i - 1], U[i]
+        ang = abs(math.degrees(math.atan2(a[0] * b[1] - a[1] * b[0], float(a @ b))))
+        if ang > ang_quina or longa[i - 1] or longa[i]:
+            quebra[i] = True
+    f = lambda v: ('%.3f' % v).rstrip('0').rstrip('.')
+    pt = lambda p: '%s,%s' % (f(p[0]), f(p[1]))
+    if not quebra.any():                              # curva fechada toda suave (círculo, elipse...)
+        pts = np.vstack([P, P[:1]])
+        t = pts[1] - pts[-2]
+        t /= np.linalg.norm(t)
+        out = []
+        _fit_cubic(pts, t, -t, err, out)
+        return 'M' + pt(P[0]) + ''.join('C' + ' '.join(pt(q) for q in b[1:]) for b in out) + 'Z', len(out)
+    ini = int(np.argmax(quebra))
+    idx = [(ini + k) % n for k in range(n)]
+    bk = [k for k in range(n) if quebra[idx[k]]] + [n]
+    d = ['M' + pt(P[idx[0]])]
+    nseg = 0
+    for a, b in zip(bk[:-1], bk[1:]):
+        ia, ib = idx[a], idx[b % n]
+        if b - a == 1 and longa[ia]:
+            d.append('L' + pt(P[ib]))
+            nseg += 1
             continue
+        pts = np.array([P[idx[k % n]] for k in range(a, b + 1)])
         chord = pts[-1] - pts[0]
         L = np.linalg.norm(chord)
         if L > 1e-9:
-            u_ = chord / L; q_ = pts - pts[0]
-            dev = np.abs(q_[:, 0] * u_[1] - q_[:, 1] * u_[0]).max() if len(pts) > 2 else 0
-            if dev < 0.004:
-                segs.append(('L', pts[-1]))
+            u_ = chord / L
+            q_ = pts - pts[0]
+            if np.abs(q_[:, 0] * u_[1] - q_[:, 1] * u_[0]).max() < 0.006:
+                d.append('L' + pt(P[ib]))
+                nseg += 1
                 continue
-        # densifica para o ajuste ficar estável
+        # tangentes: da reta vizinha se a emenda for suave, senão da própria curva
+        t1 = _tang(pts, 0, +1, 0.12)
+        t2 = _tang(pts, len(pts) - 1, -1, 0.12)
+        ant, dep = U[ia - 1], U[ib]
+        if longa[ia - 1] and float(ant @ t1) > math.cos(math.radians(ang_quina)):
+            t1 = ant
+        if longa[ib] and float(dep @ -t2) > math.cos(math.radians(ang_quina)):
+            t2 = -dep
         dens = [pts[0]]
         for k in range(1, len(pts)):
-            d = np.linalg.norm(pts[k] - pts[k - 1])
-            m = int(d / 0.25)
+            m = int(np.linalg.norm(pts[k] - pts[k - 1]) / 0.2)
             for q in range(1, m + 1):
                 dens.append(pts[k - 1] + (pts[k] - pts[k - 1]) * q / (m + 1))
             dens.append(pts[k])
-        pts = np.array(dens)
-        t1 = _tang(pts, 0, +1, 0.35)
-        t2 = _tang(pts, len(pts) - 1, -1, 0.35)
-        if fechado and len(quinas) == 2 and np.allclose(pts[0], pts[-1]):
-            t = pts[1] - pts[-2]
-            t /= np.linalg.norm(t)
-            t1, t2 = t, -t
         out = []
-        _fit_cubic(pts, t1, t2, err, out)
-        for b in out:
-            segs.append(('C', b[1], b[2], b[3]))
-    f = lambda v: ('%.3f' % v).rstrip('0').rstrip('.')
-    d = ['M%s,%s' % (f(P[0][0]), f(P[0][1]))]
-    for s in segs:
-        if s[0] == 'L':
-            d.append('L%s,%s' % (f(s[1][0]), f(s[1][1])))
-        else:
-            d.append('C' + ' '.join('%s,%s' % (f(p[0]), f(p[1])) for p in s[1:]))
-    if fechado:
-        d.append('Z')
-    return ''.join(d), len(segs)
+        _fit_cubic(np.array(dens), t1, t2, err, out)
+        for bz in out:
+            d.append('C' + ' '.join(pt(q) for q in bz[1:]))
+        nseg += len(out)
+    d.append('Z')
+    return ''.join(d), nseg
 
 
 def geom_para_paths(g, **kw):
@@ -310,7 +320,7 @@ def geom_para_paths(g, **kw):
     for p in polys(g):
         d = ''
         for anel in [p.exterior] + list(p.interiors):
-            s, k = anel_para_path(anel.coords, **kw)
+            s, k = anel_para_path(anel.simplify(0.0015).coords, **kw)
             d += s
             nos += k
         out.append(d)
@@ -445,7 +455,7 @@ def conferencia(arq_svg, info, s, eixo_x, y_topo, janela, z, arq_png, contorno, 
 S0 = 0.349                 # mm por px da referência (aprox.; a escala final é acertada pela altura)
 LW = LINHA / S0            # linha de 1,4 mm em px
 R_PRETO = MIN_PRETO / 2 / S0
-R_BRANCO = MIN_BRANCO / 2 / S0
+R_BRANCO = 1.34 / 2 / S0     # branco mínimo de 1,34 mm: mantém as linhas de 1,4 mm e elimina sobras mais finas
 
 
 def mm(v):

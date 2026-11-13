@@ -25,20 +25,22 @@ vapor_d = forma([(1298, 153, 'c'), (1297, 165), (1293, 178), (1296, 190), (1305,
 
 # óculos: modelo simétrico, depois inclinado como na referência
 OC, ANG = (1286, 370), 3.2
-lente_d = forma([(17, -12), (22, -19), (45, -20.5), (66, -19), (72, -12), (70, 2), (62, 15),
-                 (48, 22), (33, 21), (22, 13), (17, 0)])
+lente_d = elipse(44.75, -19, 27.75, 37).intersection(box(0, -19, 100, 60))   # topo reto, embaixo em meia elipse
+lente_d = lente_d.buffer(-8).buffer(8, quad_segs=32)
 lente_e = affinity.scale(lente_d, -1, 1, origin=(0, 0))
 lentes = unary_union([lente_d, lente_e])
-armacao = fechar(unary_union([lentes.buffer(mm(3.0), quad_segs=24), box(-12, -26.5, 12, -11)]), 9)
-hastes = unary_union([ret_redondo(79, -30, 97, -9, 4), ret_redondo(-97, -30, -79, -9, 4)])
-fundo_oc = fechar(armacao.buffer(mm(2.6), quad_segs=24).union(hastes), 3)
+ARM, BORDA = mm(3.0), mm(2.6)
+TOPO = -19 - ARM
+armacao = fechar(unary_union([lentes.buffer(ARM, quad_segs=32), box(-62, TOPO, 62, -11)]), 9)
+hastes = unary_union([ret_redondo(78, TOPO - BORDA, 95, -9, 4), ret_redondo(-95, TOPO - BORDA, -78, -9, 4)])
+fundo_oc = fechar(armacao.buffer(BORDA, quad_segs=32).union(hastes), 6)
 pos = lambda g: affinity.rotate(affinity.translate(g, *OC), ANG, origin=OC)
 lentes, armacao, fundo_oc = pos(lentes), pos(armacao), pos(fundo_oc)
 
 camadas = [
     ('P', vapor_e), ('P', vapor_d),
     ('P', alca), ('B', furo_alca),
-    ('P', corpo), ('P', borda), ('B', cafe), ('P', pe),
+    ('P', corpo), ('P', fechar(unary_union([fundo_oc, pe, corpo]), 6)), ('P', borda), ('B', cafe), ('P', pe),
     ('P', fundo_oc), ('B', armacao), ('P', lentes),
 ]
 relevo = [('oculos', fundo_oc), ('borda-da-xicara', borda)]

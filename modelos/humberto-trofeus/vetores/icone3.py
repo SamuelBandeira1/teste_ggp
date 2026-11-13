@@ -17,16 +17,16 @@ HALO_CABECA = 1.7 / S0  # linha branca entre cabeça e orelhas
 tampo = Polygon([(763, 151.5), (875, 198), (871, 207), (831, 225),
                  (710, 229.5), (673, 214), (668, 203)])
 faixa = Polygon([(710, 200), (831, 200), (831, 253), (710, 257)])
-l_quina = traco([(710, 229.5, 'c'), (710, 213, 'c'), (765, 183, 'c'), (831, 207, 'c'), (831, 225, 'c')], LW)
-l_aresta = traco([(765.3, 183, 'c'), (769, 246, 'c')], LW)
-l_faixa_corpo = traco([(705, 256.5), (740, 248), (770, 245), (802, 246.5), (836, 252.5)], LW)
+l_quina = traco([(710, 240, 'c'), (710, 213, 'c'), (765, 183, 'c'), (831, 207, 'c'), (831, 236, 'c')], LW)
+l_aresta = traco([(765.3, 183, 'c'), (769, 243.5, 'c')], LW)
+l_faixa_corpo = traco([(696, 259), (740, 248), (770, 245), (802, 246.5), (845, 254.5)], LW)
 
 # ------------------------------------------------------------ cordão e borla
 cordao = box(673, 205, 686, 246)
 no = elipse(679.5, 249, 10.5, 7.5)
 borla = forma([(671, 254, 'c'), (688, 254, 'c'), (689.5, 268), (690.5, 282),
                (687, 288.5), (671.5, 288.5), (667.5, 282), (669, 268)])
-l_cordao = traco([(664, 212.6, 'c'), (694, 225.2, 'c')], LW).intersection(box(672, 200, 687, 240))
+l_cordao = traco([(664, 212.6, 'c'), (694, 225.2, 'c')], LW).intersection(box(673, 200, 686, 240))
 l_no1 = traco([(664, 243, 'c'), (695, 243, 'c')], LW)
 l_no2 = traco([(664, 255.5, 'c'), (695, 255.5, 'c')], LW)
 
@@ -55,6 +55,9 @@ menina = unary_union([cabeca, orelha_e, orelha_d, vestido])
 halo = menina.buffer(HALO, quad_segs=24)
 # contorno externo liso do lado direito: preenche as reentrâncias do halo (entre a ponta do cabelo e o vestido)
 halo = halo.union(fechar(halo, 6.0 / S0).intersection(box(805, 0, 2000, 2000)))
+# lado direito em linha reta da ponta do cabelo até a base, tangente à ponta do cabelo (contorno externo liso)
+halo = halo.union(Polygon([(840, 386), (873 + HALO, 386), (873 + HALO, 391), (842 + HALO + 1, 460), (840, 460)]))
+menina_cheia = fechar(unary_union([cabeca, vestido]), 8)      # sem frestas entre as mechas e o vestido
 orelhas = unary_union([orelha_e, orelha_d]).difference(cabeca.buffer(HALO_CABECA, quad_segs=24))
 rosto = forma([(759, 359, 'c'), (759, 373), (764, 386), (779, 395), (800, 398), (822, 395),
                (837, 386), (843, 373), (843, 360, 'c'), (814, 331, 'c'), (796, 362, 'c'), (778, 334, 'c')])
@@ -68,8 +71,8 @@ camadas = [
     ('P', cordao), ('P', no), ('P', borla),
     ('L', l_quina), ('L', l_aresta), ('L', l_faixa_corpo),
     ('L', l_cordao), ('L', l_no1), ('L', l_no2),
-    ('P', livro1), ('B', pag1), ('P', livro2), ('B', pag2),
-    ('B', halo), ('P', orelhas), ('P', cabeca), ('P', vestido),
+    ('P', livro1), ('B', pag1), ('P', livro2), ('B', pag2), ('B', box(711, 377, 800, 398.2)),
+    ('B', halo), ('P', orelhas), ('P', cabeca), ('P', vestido), ('P', menina_cheia),
     ('B', rosto), ('P', olho_e), ('P', olho_d),
 ]
 
