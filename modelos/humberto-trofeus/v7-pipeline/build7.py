@@ -5,7 +5,8 @@ sys.path.insert(0, '.')
 import vetor
 NOME = {1:'engrenagem-codigo',2:'escudo-aperto-de-mao',3:'formatura-anime',4:'sol-calculadora-grafico',
         5:'cafe-oculos',6:'capacete-bandeira',7:'camaleao',8:'haltere-folha-oculos',9:'leitura-relogio'}
-ESP, CHANF, ESP_IN, ESP_F = 14.0, 1.8, 13.0, 6.0
+ESP, CHANF, ESP_IN, ESP_F = 14.0, 2.8, 13.0, 6.0
+FUNDO = {1,2,3,4,5,8}
 PINO = (15.0, 8.0, 8.0)
 CORTE = 0.6
 
@@ -14,22 +15,35 @@ def polys(g):
     return [p for p in (g.geoms if hasattr(g, 'geoms') else [g]) if p.geom_type == 'Polygon' and p.area > 0.3]
 
 def geometria(i):
-    if i == 9:
-        d = pickle.load(open('i9_vetor.pkl', 'rb')); p, b, f = d['preto'], d['branco'], Polygon()
-    else:
-        H = int(open(f'i{i}_altura.txt').read())
-        ler = lambda n: vetor.ler(f'i{i}_{n}.svg', H) if os.path.exists(f'i{i}_{n}.svg') else Polygon()
-        p, b, f = ler('preto'), ler('branco'), ler('fundo')
-    clip = box(-46 if i == 1 else -200, CORTE, 200, 300)      # no 1, corta o texto '10 cm' da imagem de referência
-    sh = lambda g: __import__('shapely').affinity.translate(g.intersection(clip), 0, -CORTE)
-    p, b, f = sh(p.buffer(0)), sh(b.buffer(0)), sh(f.buffer(0))
-    b = b.difference(p); f = f.difference(p).difference(b)
-    # tira fragmentos soltos longe da peça (textos e pedaços da imagem de referência)
-    tudo = unary_union([p, b, f]); comps = polys(tudo)
+    import ajustes8, camadas
+    H = int(open(f'i{i}_altura.txt').read())
+    ler = lambda n: vetor.ler(f'i{i}_{n}.svg', H) if os.path.exists(f'i{i}_{n}.svg') else Polygon()
+    p, b = ler('preto').buffer(0), ler('branco').buffer(0)
+    if i == 9: p, b = Polygon(), Polygon()
+    if i in ajustes8.AJUSTES:
+        p, b, _ = ajustes8.AJUSTES[i](p, b, None, ajustes8.conv(i, camadas.APOIO[i]))
+    import shapely
+    p, b = shapely.set_precision(shapely.make_valid(p), 0.002), shapely.set_precision(shapely.make_valid(b), 0.002)
+    # tira fragmentos soltos longe da peça
+    comps = polys(unary_union([p, b]))
     if comps:
         maior = max(comps, key=lambda c: c.area)
-        lixo = unary_union([c for c in comps if c is not maior and c.area < 40 and c.distance(maior) > 2.0])
-        if not lixo.is_empty: p, b, f = p.difference(lixo), b.difference(lixo), f.difference(lixo)
+        lixo = unary_union([c for c in comps if c is not maior and c.area < 40 and c.distance(maior.convex_hull) > 2.0])
+        if not lixo.is_empty: p, b = p.difference(lixo), b.difference(lixo)
+    if i == 1: p, b = p.intersection(box(-46, -50, 200, 300)), b.intersection(box(-46, -50, 200, 300))
+    # branco no nível da frente: tudo que está fechado pelo preto (inclusive faces quase fechadas)
+    fech = p.buffer(1.2, quad_segs=16).buffer(-1.2, quad_segs=16)
+    cheio = unary_union([Polygon(g.exterior) for g in polys(fech)])
+    b = unary_union([b, cheio.difference(p)]).difference(p)
+    f = Polygon()
+    if i in FUNDO:   # fundo branco recuado só dentro do contorno (sem borda por fora)
+        casco = unary_union([p, b]).buffer(6, quad_segs=16).buffer(-6, quad_segs=16)
+        f = casco.difference(p).difference(b).intersection(box(-200, 2.5, 200, 300))
+        if i == 2: f = f.difference(box(-14, -5, 14, 10))
+    clip = box(-200, CORTE, 200, 300)
+    sh = lambda g: __import__('shapely').affinity.translate(g.intersection(clip), 0, -CORTE)
+    p, b, f = sh(p), sh(b), sh(f)
+    b = b.difference(p); f = f.difference(p).difference(b)
     return p, b, f
 
 def extrudar(g, h):
