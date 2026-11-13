@@ -26,21 +26,25 @@ def a1(p, b, f, cv):
     b2 = unary_union([b, gap.difference(chave).intersection(p.buffer(0.5))])
     return p2, b2.difference(p2), f
 
+def fiel(p, r_fecho=1.5, faixa_base=4.0):
+    """método aprovado: preto = traçado pelo limiar do branco; branco = tudo dentro do contorno que não é preto"""
+    p = ok(p)
+    if faixa_base > 0:
+        faixa = box(-80, -5, 80, faixa_base)      # tira lasquinhas da borda da base que grudaram embaixo
+        p = ok(unary_union([p.difference(faixa), ok(p.intersection(faixa).buffer(-0.9, quad_segs=16).buffer(0.9, quad_segs=16)).intersection(faixa)]))
+    p = unary_union([g for g in (p.geoms if hasattr(p, 'geoms') else [p]) if g.area > 2.0])
+    fech = ok(p.buffer(r_fecho, quad_segs=16).buffer(-r_fecho, quad_segs=16))
+    contorno = ok(unary_union([Polygon(g.exterior) for g in (fech.geoms if hasattr(fech, 'geoms') else [fech])]))
+    return p, ok(contorno.difference(p))
+
 def a3(p, b, f, cv):
-    tabua = arred(Polygon([(-101,233),(-9,286),(109,240),(42,203),(-58,207)]), 5)
-    copa = RR(-56, 175, 63, 212, 6)
-    cordao = RR(-91, 186, -84, 236, 3); no = E((-87.5, 187), 10, 6)
-    borla = arred(Polygon([(-95,184),(-80,184),(-76,150),(-99,150)]), 5)
-    livro_c = RR(-110, 52, -30, 90, 13); folhas_c = RR(-94, 60, -20, 73, 6.5).intersection(box(-200, 0, -32, 300))
-    livro_b = RR(-118, 21, 10, 56, 15); folhas_b = RR(-101, 29, 15, 43, 7).intersection(box(-200, 0, -2, 300))
-    chapeu = cv(unary_union([tabua, copa, cordao, no, borla]))
-    livros = cv(unary_union([livro_c, livro_b])); folhas = cv(unary_union([folhas_c, folhas_b]))
-    zona = cv(unary_union([tabua.buffer(3), box(-125, 150, -70, 240), livro_c.buffer(3), livro_b.buffer(3)]))
-    menina = p.difference(zona)
-    linha_aba = cv(tabua).exterior.buffer(0.45).intersection(cv(copa))
-    p2 = unary_union([menina, chapeu.difference(linha_aba), livros.difference(folhas).difference(menina.buffer(1.0))])
-    b2 = unary_union([b.difference(zona), folhas.difference(menina.buffer(1.0)), linha_aba])
-    return p2, b2.difference(p2), f
+    p = ok(p)
+    # o livro de baixo passa à frente da base na foto: fecha a borda de baixo dele, reta, na largura do livro
+    livro = p.intersection(box(-80, 0, -1, 6)).bounds
+    if len(livro) == 4:
+        p = ok(unary_union([p, box(livro[0] + 2.5, 0, livro[2], 1.6).buffer(0.8, quad_segs=16).intersection(box(-80, 0, 80, 3))]))
+    p, br = fiel(p, r_fecho=3.0, faixa_base=0)
+    return p, br, f
 
 def a6(p, b, f, cv):
     b = b.buffer(-0.45).buffer(0.45)                    # tira o risco fino de brilho no topo do capacete
