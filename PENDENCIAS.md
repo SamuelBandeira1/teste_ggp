@@ -10,7 +10,7 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
 ## 0. Resumo (atualizado em 12/11)
 | Cliente | Pedido | Status |
 |---|---|---|
-| Humberto | Placa de mesa SOE/SNOI/SNOP, besouro, moldura, cantoneiras | **Confirmou que quer o orçamento de tudo.** Fazer o orçamento único (itens 1, 1b, 1c) |
+| Humberto | Placa de mesa SOE/SNOI/SNOP, besouro, moldura, cantoneiras, **9 troféus** | **Confirmou que quer o orçamento de tudo.** Fazer o orçamento único (itens 1, 1b, 1c, 1g) |
 | Patrícia | 5 pias de água benta personalizadas | Falar com ela: modelos e nomes dos casais (item 1f) |
 | João Vasconcelos | "Dummy" + peças de aquário | Pegar a imagem no WhatsApp e entender o pedido (item 1e) |
 | Tia Karina | Peças geométricas azul e amarelo | Terminar e precificar com 2 rolos (item 1d) |
@@ -44,6 +44,28 @@ Anotado em 10/11/2026. Quando o Samuel pedir "verifica as pendências", começar
 - **Modelo:** ele diz que existe pronto no MakerWorld (Bambu Lab). Buscar por "picture frame corner clamp" ou "frame gluing corner" e escolher o que bate com o desenho.
 - **Falta:** ele vai passar as medidas: largura e altura do perfil da moldura e a espessura. Não modelar nem imprimir antes disso.
 - **Dica de impressão:** PETG ou PLA com 4 paredes, para não abrir quando apertar. Incluir um rebaixo no canto interno para a cola que escorrer não grudar na peça.
+
+## 1g. Humberto: 9 troféus temáticos (pedido de 11/11 no WhatsApp)
+- **Pedido:** "um troféu de cada" seguindo a referência que ele mandou. São 9 ícones pretos, cada um sobre uma base redonda:
+  1. Engrenagem com `</>` e chave inglesa (desenvolvimento/TI)
+  2. Escudo com aperto de mão
+  3. Capelo de formatura com personagem de anime segurando livro
+  4. Sol sorrindo com calculadora e gráfico de barras subindo
+  5. Xícara de café com óculos
+  6. Capacete de corrida com bandeira quadriculada
+  7. Camaleão no galho
+  8. Haltere com folha, óculos redondos e raio
+  9. Pessoa lendo livro com relógio atrás
+- **Medidas:** 12 cm de altura total e base de 2,5 cm. Na imagem de referência, os 2,5 cm são a altura da base redonda.
+- **Resposta do Samuel na hora:** "É possível, vou ver aqui a possibilidade". Ele está esperando o orçamento.
+- **Referência:** `dados/referencias/humberto-trofeus.jpg` (fora do git, porque o print mostra uma reunião do trabalho).
+- **Confirmar com ele:**
+  1. Se é 1 de cada (9 no total).
+  2. Se leva nome ou título na base (ex.: nome da pessoa ou "Melhor do ano").
+  3. Se é tudo preto como na imagem ou se a base tem outra cor.
+  4. O prazo (é para a confraternização de 19/11?).
+- **Produção:** é uma cor só, o que facilita. O ícone é chapado (formato de silhueta, extrudado), então dá para modelar a partir da imagem: vetorizar cada silhueta, extrudar uns 8 a 10 mm e encaixar na base. Para não quebrar, as partes finas (óculos, chave, raio, bandeira) precisam de pelo menos 2 mm de espessura. Procurar também modelos prontos parecidos no MakerWorld.
+- **O item 8 lembra Harry Potter** (óculos redondos + raio). Para presente particular não tem problema; não usar isso em produto para vender.
 
 ## 1d. Tia Karina (tia da Amanda): peças geométricas — terminar hoje (10/11)
 - **Pedido:** as peças geométricas dela. O projeto já existe em um dos projetos do Claude ou do Claude Code; procurar lá antes de começar do zero.
